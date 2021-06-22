@@ -82,24 +82,6 @@ int main(int argc, char** argv) {
     IExecutionContext* context = engine->createExecutionContext();
     assert(context != nullptr);
 
-    static float prob[OUTPUT_SIZE];
-    std::cout << "inferencing" << std::endl;
-    for (int i = 0; i < 5; i++) {
-        static float data[3 * INPUT_H * INPUT_W];
-        cv::Mat img = cv::imread(std::string(argv[1 + i]));
-        cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
-        float *p_data = &data[0];
-        for (int i = 0; i < INPUT_H * INPUT_W; i++) {
-            p_data[i] = pr_img.at<cv::Vec3b>(i)[0];
-            p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1];
-            p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2];
-        }
-        auto start = std::chrono::system_clock::now();
-        doInference(*context, data, prob, 1);
-        auto end = std::chrono::system_clock::now();
-        std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
-    }
-
     static float data[3 * INPUT_H * INPUT_W];
     cv::Mat img = cv::imread(std::string(argv[1]));
     cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
@@ -110,10 +92,11 @@ int main(int argc, char** argv) {
         p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2];
     }
 
+    static float prob[OUTPUT_SIZE];
+    std::cout << "inferencing" << std::endl;
     doInference(*context, data, prob, 1);
 
     std::cout << "postprocessing" << std::endl;
-    auto start = std::chrono::system_clock::now();
     std::vector<decodeplugin::Detection> res;
     nms(res, &prob[0], IOU_THRESH);
     cv::Mat tmp = img.clone();
@@ -122,8 +105,6 @@ int main(int argc, char** argv) {
         cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
         std::cout << r.x << " " << r.y << " " << r.width << " " << r.height << std::endl;
     }
-    auto end = std::chrono::system_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
 
     context->destroy();
     engine->destroy();
