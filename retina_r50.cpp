@@ -74,8 +74,6 @@ int main(int argc, char** argv) {
 
     // prepare input data ---------------------------
     static float data[3 * INPUT_H * INPUT_W];
-    //for (int i = 0; i < 3 * INPUT_H * INPUT_W; i++)
-    //    data[i] = 1.0;
 
     cv::Mat img = cv::imread("../images/2.4k.jpeg");
     cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
@@ -93,36 +91,21 @@ int main(int argc, char** argv) {
     IRuntime* runtime = createInferRuntime(gLogger);
     assert(runtime != nullptr);
     ICudaEngine* engine = runtime->deserializeCudaEngine(trtModelStream, size);
-    //ICudaEngine* engine = runtime->deserializeCudaEngine(trtModelStream, size, nullptr);
     assert(engine != nullptr);
     IExecutionContext* context = engine->createExecutionContext();
     assert(context != nullptr);
 
     // Run inference
     static float prob[OUTPUT_SIZE];
-    int total = 0;
-    int n = 1001;
-    for (int cc = 0; cc < n; cc++) {
-        auto start = std::chrono::system_clock::now();
-        doInference(*context, data, prob, 1);
-        auto end = std::chrono::system_clock::now();
-        std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
-        if (cc > 0)
-            total += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    }
-    std::cout << (total / (n - 1)) << std::endl;
+    doInference(*context, data, prob, 1);
 
     std::vector<decodeplugin::Detection> res;
     nms(res, &prob[0], IOU_THRESH);
-    std::cout << "number of detections -> " << prob[0] << std::endl;
-    std::cout << " -> " << prob[10] << std::endl;
-    std::cout << "after nms -> " << res.size() << std::endl;
     cv::Mat tmp = img.clone();
     for (size_t j = 0; j < res.size(); j++) {
         if (res[j].class_confidence < CONF_THRESH) continue;
         cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
         cv::rectangle(tmp, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
-        //cv::putText(tmp, std::to_string((int)(res[j].class_confidence * 100)) + "%", cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 1);
         for (int k = 0; k < 10; k += 2) {
             cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
         }
@@ -133,15 +116,6 @@ int main(int argc, char** argv) {
     context->destroy();
     engine->destroy();
     runtime->destroy();
-
-    // Print histogram of the output distribution
-    //std::cout << "\nOutput:\n\n";
-    //for (unsigned int i = 0; i < OUTPUT_SIZE; i++)
-    //{
-    //    std::cout << prob[i] << ", ";
-    //    if (i % 10 == 0) std::cout << i / 10 << std::endl;
-    //}
-    //std::cout << std::endl;
 
     return 0;
 }
