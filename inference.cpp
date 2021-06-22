@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
     }
 
     static float data[3 * INPUT_H * INPUT_W];
-    cv::Mat img = cv::imread(std::string(argv[1 + i]));
+    cv::Mat img = cv::imread(std::string(argv[1]));
     cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
     float *p_data = &data[0];
     for (int i = 0; i < INPUT_H * INPUT_W; i++) {
