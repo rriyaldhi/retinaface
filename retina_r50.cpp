@@ -56,7 +56,6 @@ void doInference(IExecutionContext& context, float* input, float* output, int ba
 int main(int argc, char** argv) {
 
     cudaSetDevice(DEVICE);
-    // create a model using the API directly and serialize it to a stream
     char *trtModelStream{nullptr};
     size_t size{0};
 
@@ -71,14 +70,11 @@ int main(int argc, char** argv) {
         file.close();
     }
 
-    // prepare input data ---------------------------
     static float data[3 * INPUT_H * INPUT_W];
 
     cv::Mat img = cv::imread("../images/2.4k.jpeg");
     cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
 
-    // For multi-batch, I feed the same image multiple times.
-    // If you want to process different images in a batch, you need adapt it.
     float *p_data = &data[0];
     for (int i = 0; i < INPUT_H * INPUT_W; i++) {
         p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
@@ -110,7 +106,6 @@ int main(int argc, char** argv) {
     }
     cv::imwrite("_result.jpg", tmp);
 
-    // Destroy the engine
     context->destroy();
     engine->destroy();
     runtime->destroy();
