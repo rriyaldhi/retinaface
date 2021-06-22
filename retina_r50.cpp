@@ -9,7 +9,6 @@
 #include "common.hpp"
 
 #define DEVICE 0  // GPU id
-#define BATCH_SIZE 1
 #define CONF_THRESH 0.75
 #define IOU_THRESH 0.4
 
@@ -74,7 +73,7 @@ int main(int argc, char** argv) {
     }
 
     // prepare input data ---------------------------
-    static float data[BATCH_SIZE * 3 * INPUT_H * INPUT_W];
+    static float data[1 * 3 * INPUT_H * INPUT_W];
     //for (int i = 0; i < 3 * INPUT_H * INPUT_W; i++)
     //    data[i] = 1.0;
 
@@ -84,7 +83,7 @@ int main(int argc, char** argv) {
 
     // For multi-batch, I feed the same image multiple times.
     // If you want to process different images in a batch, you need adapt it.
-    for (int b = 0; b < BATCH_SIZE; b++) {
+    for (int b = 0; b < 1; b++) {
         float *p_data = &data[b * 3 * INPUT_H * INPUT_W];
         for (int i = 0; i < INPUT_H * INPUT_W; i++) {
             p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
@@ -102,12 +101,12 @@ int main(int argc, char** argv) {
     assert(context != nullptr);
 
     // Run inference
-    static float prob[BATCH_SIZE * OUTPUT_SIZE];
+    static float prob[1 * OUTPUT_SIZE];
     int total = 0;
     int n = 1001;
     for (int cc = 0; cc < n; cc++) {
         auto start = std::chrono::system_clock::now();
-        doInference(*context, data, prob, BATCH_SIZE);
+        doInference(*context, data, prob, 1);
         auto end = std::chrono::system_clock::now();
         std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
         if (cc > 0)
@@ -115,7 +114,7 @@ int main(int argc, char** argv) {
     }
     std::cout << (total / (n - 1)) << std::endl;
 
-    for (int b = 0; b < BATCH_SIZE; b++) {
+    for (int b = 0; b < 1; b++) {
         std::vector<decodeplugin::Detection> res;
         nms(res, &prob[b * OUTPUT_SIZE], IOU_THRESH);
         std::cout << "number of detections -> " << prob[b * OUTPUT_SIZE] << std::endl;
