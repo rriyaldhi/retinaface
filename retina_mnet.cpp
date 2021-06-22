@@ -9,7 +9,7 @@
 #include "common.hpp"
 #include "calibrator.h"
 
-#define USE_INT8  // set USE_INT8 or USE_FP16 or USE_FP32
+#define USE_FP16  // set USE_INT8 or USE_FP16 or USE_FP32
 #define DEVICE 0  // GPU id
 #define BATCH_SIZE 1
 #define CONF_THRESH 0.75
@@ -24,72 +24,68 @@ const char* OUTPUT_BLOB_NAME = "prob";
 
 static Logger gLogger;
 
-IActivationLayer* bottleneck(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor& input, int inch, int outch, int stride, std::string lname) {
+ILayer* conv_bn(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor& input, std::string lname, int oup, int s = 1, float leaky = 0.1) {
     Weights emptywts{DataType::kFLOAT, nullptr, 0};
-
-    IConvolutionLayer* conv1 = network->addConvolutionNd(input, outch, DimsHW{1, 1}, weightMap[lname + "conv1.weight"], emptywts);
+    IConvolutionLayer* conv1 = network->addConvolutionNd(input, oup, DimsHW{3, 3}, getWeights(weightMap, lname + ".0.weight"), emptywts);
     assert(conv1);
-
-    IScaleLayer* bn1 = addBatchNorm2d(network, weightMap, *conv1->getOutput(0), lname + "bn1", 1e-5);
-
-    IActivationLayer* relu1 = network->addActivation(*bn1->getOutput(0), ActivationType::kRELU);
-    assert(relu1);
-
-    IConvolutionLayer* conv2 = network->addConvolutionNd(*relu1->getOutput(0), outch, DimsHW{3, 3}, weightMap[lname + "conv2.weight"], emptywts);
-    assert(conv2);
-    conv2->setStrideNd(DimsHW{stride, stride});
-    conv2->setPaddingNd(DimsHW{1, 1});
-
-    IScaleLayer* bn2 = addBatchNorm2d(network, weightMap, *conv2->getOutput(0), lname + "bn2", 1e-5);
-
-    IActivationLayer* relu2 = network->addActivation(*bn2->getOutput(0), ActivationType::kRELU);
-    assert(relu2);
-
-    IConvolutionLayer* conv3 = network->addConvolutionNd(*relu2->getOutput(0), outch * 4, DimsHW{1, 1}, weightMap[lname + "conv3.weight"], emptywts);
-    assert(conv3);
-
-    IScaleLayer* bn3 = addBatchNorm2d(network, weightMap, *conv3->getOutput(0), lname + "bn3", 1e-5);
-
-    IElementWiseLayer* ew1;
-    if (stride != 1 || inch != outch * 4) {
-        IConvolutionLayer* conv4 = network->addConvolutionNd(input, outch * 4, DimsHW{1, 1}, weightMap[lname + "downsample.0.weight"], emptywts);
-        assert(conv4);
-        conv4->setStrideNd(DimsHW{stride, stride});
-
-        IScaleLayer* bn4 = addBatchNorm2d(network, weightMap, *conv4->getOutput(0), lname + "downsample.1", 1e-5);
-        ew1 = network->addElementWise(*bn4->getOutput(0), *bn3->getOutput(0), ElementWiseOperation::kSUM);
-    } else {
-        ew1 = network->addElementWise(input, *bn3->getOutput(0), ElementWiseOperation::kSUM);
-    }
-    IActivationLayer* relu3 = network->addActivation(*ew1->getOutput(0), ActivationType::kRELU);
-    assert(relu3);
-    return relu3;
-}
-
-ILayer* conv_bn_relu(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor& input, int outch, int kernelsize, int stride, int padding, bool userelu, std::string lname) {
-    Weights emptywts{DataType::kFLOAT, nullptr, 0};
-
-    IConvolutionLayer* conv1 = network->addConvolutionNd(input, outch, DimsHW{kernelsize, kernelsize}, getWeights(weightMap, lname + ".0.weight"), emptywts);
-    assert(conv1);
-    conv1->setStrideNd(DimsHW{stride, stride});
-    conv1->setPaddingNd(DimsHW{padding, padding});
-
+    conv1->setStrideNd(DimsHW{s, s});
+    conv1->setPaddingNd(DimsHW{1, 1});
     IScaleLayer* bn1 = addBatchNorm2d(network, weightMap, *conv1->getOutput(0), lname + ".1", 1e-5);
-
-    if (!userelu) return bn1;
-
-    IActivationLayer* relu1 = network->addActivation(*bn1->getOutput(0), ActivationType::kRELU);
-    assert(relu1);
-
-    return relu1;
+    auto lr = network->addActivation(*bn1->getOutput(0), ActivationType::kLEAKY_RELU);
+    lr->setAlpha(leaky);
+    assert(lr);
+    return lr;
 }
 
-IActivationLayer* ssh(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor& input, std::string lname) {
-    auto conv3x3 = conv_bn_relu(network, weightMap, input, 256 / 2, 3, 1, 1, false, lname + ".conv3X3");
-    auto conv5x5_1 = conv_bn_relu(network, weightMap, input, 256 / 4, 3, 1, 1, true, lname + ".conv5X5_1");
-    auto conv5x5 = conv_bn_relu(network, weightMap, *conv5x5_1->getOutput(0), 256 / 4, 3, 1, 1, false, lname + ".conv5X5_2");
-    auto conv7x7 = conv_bn_relu(network, weightMap, *conv5x5_1->getOutput(0), 256 / 4, 3, 1, 1, true, lname + ".conv7X7_2");
-    conv7x7 = conv_bn_relu(network, weightMap, *conv7x7->getOutput(0), 256 / 4, 3, 1, 1, false, lname + ".conv7x7_3");
+ILayer* conv_bn_no_relu(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor& input, std::string lname, int oup, int s = 1) {
+    Weights emptywts{DataType::kFLOAT, nullptr, 0};
+    IConvolutionLayer* conv1 = network->addConvolutionNd(input, oup, DimsHW{3, 3}, getWeights(weightMap, lname + ".0.weight"), emptywts);
+    assert(conv1);
+    conv1->setStrideNd(DimsHW{s, s});
+    conv1->setPaddingNd(DimsHW{1, 1});
+    IScaleLayer* bn1 = addBatchNorm2d(network, weightMap, *conv1->getOutput(0), lname + ".1", 1e-5);
+    return bn1;
+}
+
+ILayer* conv_bn1X1(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor& input, std::string lname, int oup, int s = 1, float leaky = 0.1) {
+    Weights emptywts{DataType::kFLOAT, nullptr, 0};
+    IConvolutionLayer* conv1 = network->addConvolutionNd(input, oup, DimsHW{1, 1}, getWeights(weightMap, lname + ".0.weight"), emptywts);
+    assert(conv1);
+    conv1->setStrideNd(DimsHW{s, s});
+    conv1->setPaddingNd(DimsHW{0, 0});
+    IScaleLayer* bn1 = addBatchNorm2d(network, weightMap, *conv1->getOutput(0), lname + ".1", 1e-5);
+    auto lr = network->addActivation(*bn1->getOutput(0), ActivationType::kLEAKY_RELU);
+    lr->setAlpha(leaky);
+    assert(lr);
+    return lr;
+}
+
+ILayer* conv_dw(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor& input, std::string lname, int inp, int oup, int s = 1, float leaky = 0.1) {
+    Weights emptywts{DataType::kFLOAT, nullptr, 0};
+    IConvolutionLayer* conv1 = network->addConvolutionNd(input, inp, DimsHW{3, 3}, getWeights(weightMap, lname + ".0.weight"), emptywts);
+    assert(conv1);
+    conv1->setStrideNd(DimsHW{s, s});
+    conv1->setPaddingNd(DimsHW{1, 1});
+    conv1->setNbGroups(inp);
+    IScaleLayer* bn1 = addBatchNorm2d(network, weightMap, *conv1->getOutput(0), lname + ".1", 1e-5);
+    auto lr1 = network->addActivation(*bn1->getOutput(0), ActivationType::kLEAKY_RELU);
+    lr1->setAlpha(leaky);
+    assert(lr1);
+    IConvolutionLayer* conv2 = network->addConvolutionNd(*lr1->getOutput(0), oup, DimsHW{1, 1}, getWeights(weightMap, lname + ".3.weight"), emptywts);
+    assert(conv2);
+    IScaleLayer* bn2 = addBatchNorm2d(network, weightMap, *conv2->getOutput(0), lname + ".4", 1e-5);
+    auto lr2 = network->addActivation(*bn2->getOutput(0), ActivationType::kLEAKY_RELU);
+    lr2->setAlpha(leaky);
+    assert(lr2);
+    return lr2;
+}
+
+IActivationLayer* ssh(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor& input, std::string lname, int oup) {
+    auto conv3x3 = conv_bn_no_relu(network, weightMap, input, lname + ".conv3X3", oup / 2);
+    auto conv5x5_1 = conv_bn(network, weightMap, input, lname + ".conv5X5_1", oup / 4);
+    auto conv5x5 = conv_bn_no_relu(network, weightMap, *conv5x5_1->getOutput(0), lname + ".conv5X5_2", oup / 4);
+    auto conv7x7 = conv_bn(network, weightMap, *conv5x5_1->getOutput(0), lname + ".conv7X7_2", oup / 4);
+    conv7x7 = conv_bn_no_relu(network, weightMap, *conv7x7->getOutput(0), lname + ".conv7x7_3", oup / 4);
     ITensor* inputTensors[] = {conv3x3->getOutput(0), conv5x5->getOutput(0), conv7x7->getOutput(0)};
     auto cat = network->addConcatenation(inputTensors, 3);
     IActivationLayer* relu1 = network->addActivation(*cat->getOutput(0), ActivationType::kRELU);
@@ -108,79 +104,64 @@ ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder* builder, IBuilder
     std::map<std::string, Weights> weightMap = loadWeights("../retinaface.wts");
     Weights emptywts{DataType::kFLOAT, nullptr, 0};
 
-    // ------------- backbone resnet50 ---------------
-    IConvolutionLayer* conv1 = network->addConvolutionNd(*data, 64, DimsHW{7, 7}, weightMap["body.conv1.weight"], emptywts);
-    assert(conv1);
-    conv1->setStrideNd(DimsHW{2, 2});
-    conv1->setPaddingNd(DimsHW{3, 3});
+    // ------------- backbone mobilenet0.25  ---------------
+    // stage 1
+    auto x = conv_bn(network, weightMap, *data, "body.stage1.0", 8, 2);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage1.1", 8, 16);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage1.2", 16, 32, 2);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage1.3", 32, 32);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage1.4", 32, 64, 2);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage1.5", 64, 64);
+    auto stage1 = x;
 
-    IScaleLayer* bn1 = addBatchNorm2d(network, weightMap, *conv1->getOutput(0), "body.bn1", 1e-5);
+    // stage 2
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage2.0", 64, 128, 2);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage2.1", 128, 128);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage2.2", 128, 128);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage2.3", 128, 128);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage2.4", 128, 128);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage2.5", 128, 128);
+    auto stage2 = x;
 
-    // Add activation layer using the ReLU algorithm.
-    IActivationLayer* relu1 = network->addActivation(*bn1->getOutput(0), ActivationType::kRELU);
-    assert(relu1);
+    // stage 3
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage3.0", 128, 256, 2);
+    x = conv_dw(network, weightMap, *x->getOutput(0), "body.stage3.1", 256, 256);
+    auto stage3 = x;
 
-    // Add max pooling layer with stride of 2x2 and kernel size of 2x2.
-    IPoolingLayer* pool1 = network->addPoolingNd(*relu1->getOutput(0), PoolingType::kMAX, DimsHW{3, 3});
-    assert(pool1);
-    pool1->setStrideNd(DimsHW{2, 2});
-    pool1->setPaddingNd(DimsHW{1, 1});
-
-    IActivationLayer* x = bottleneck(network, weightMap, *pool1->getOutput(0), 64, 64, 1, "body.layer1.0.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 256, 64, 1, "body.layer1.1.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 256, 64, 1, "body.layer1.2.");
-
-    x = bottleneck(network, weightMap, *x->getOutput(0), 256, 128, 2, "body.layer2.0.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 128, 1, "body.layer2.1.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 128, 1, "body.layer2.2.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 128, 1, "body.layer2.3.");
-    IActivationLayer* layer2 = x;
-
-    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 256, 2, "body.layer3.0.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "body.layer3.1.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "body.layer3.2.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "body.layer3.3.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "body.layer3.4.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "body.layer3.5.");
-    IActivationLayer* layer3 = x;
-
-    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 512, 2, "body.layer4.0.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 2048, 512, 1, "body.layer4.1.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 2048, 512, 1, "body.layer4.2.");
-    IActivationLayer* layer4 = x;
-
+    //Dims d1 = stage1->getOutput(0)->getDimensions();
+    //std::cout << d1.d[0] << " " << d1.d[1] << " " << d1.d[2] << std::endl;
     // ------------- FPN ---------------
-    auto output1 = conv_bn_relu(network, weightMap, *layer2->getOutput(0), 256, 1, 1, 0, true, "fpn.output1");
-    auto output2 = conv_bn_relu(network, weightMap, *layer3->getOutput(0), 256, 1, 1, 0, true, "fpn.output2");
-    auto output3 = conv_bn_relu(network, weightMap, *layer4->getOutput(0), 256, 1, 1, 0, true, "fpn.output3");
+    auto output1 = conv_bn1X1(network, weightMap, *stage1->getOutput(0), "fpn.output1", 64);
+    auto output2 = conv_bn1X1(network, weightMap, *stage2->getOutput(0), "fpn.output2", 64);
+    auto output3 = conv_bn1X1(network, weightMap, *stage3->getOutput(0), "fpn.output3", 64);
 
-    float *deval = reinterpret_cast<float*>(malloc(sizeof(float) * 256 * 2 * 2));
-    for (int i = 0; i < 256 * 2 * 2; i++) {
+    float *deval = reinterpret_cast<float*>(malloc(sizeof(float) * 64 * 2 * 2));
+    for (int i = 0; i < 64 * 2 * 2; i++) {
         deval[i] = 1.0;
     }
-    Weights deconvwts{DataType::kFLOAT, deval, 256 * 2 * 2};
-    IDeconvolutionLayer* up3 = network->addDeconvolutionNd(*output3->getOutput(0), 256, DimsHW{2, 2}, deconvwts, emptywts);
+    Weights deconvwts{DataType::kFLOAT, deval, 64 * 2 * 2};
+    IDeconvolutionLayer* up3 = network->addDeconvolutionNd(*output3->getOutput(0), 64, DimsHW{2, 2}, deconvwts, emptywts);
     assert(up3);
     up3->setStrideNd(DimsHW{2, 2});
-    up3->setNbGroups(256);
+    up3->setNbGroups(64);
     weightMap["up3"] = deconvwts;
 
     output2 = network->addElementWise(*output2->getOutput(0), *up3->getOutput(0), ElementWiseOperation::kSUM);
-    output2 = conv_bn_relu(network, weightMap, *output2->getOutput(0), 256, 3, 1, 1, true, "fpn.merge2");
+    output2 = conv_bn(network, weightMap, *output2->getOutput(0), "fpn.merge2", 64);
 
-    IDeconvolutionLayer* up2 = network->addDeconvolutionNd(*output2->getOutput(0), 256, DimsHW{2, 2}, deconvwts, emptywts);
+    IDeconvolutionLayer* up2 = network->addDeconvolutionNd(*output2->getOutput(0), 64, DimsHW{2, 2}, deconvwts, emptywts);
     assert(up2);
     up2->setStrideNd(DimsHW{2, 2});
-    up2->setNbGroups(256);
+    up2->setNbGroups(64);
     output1 = network->addElementWise(*output1->getOutput(0), *up2->getOutput(0), ElementWiseOperation::kSUM);
-    output1 = conv_bn_relu(network, weightMap, *output1->getOutput(0), 256, 3, 1, 1, true, "fpn.merge1");
+    output1 = conv_bn(network, weightMap, *output1->getOutput(0), "fpn.merge1", 64);
 
     // ------------- SSH ---------------
-    auto ssh1 = ssh(network, weightMap, *output1->getOutput(0), "ssh1");
-    auto ssh2 = ssh(network, weightMap, *output2->getOutput(0), "ssh2");
-    auto ssh3 = ssh(network, weightMap, *output3->getOutput(0), "ssh3");
+    auto ssh1 = ssh(network, weightMap, *output1->getOutput(0), "ssh1", 64);
+    auto ssh2 = ssh(network, weightMap, *output2->getOutput(0), "ssh2", 64);
+    auto ssh3 = ssh(network, weightMap, *output3->getOutput(0), "ssh3", 64);
 
-    // ------------- Head ---------------
+    //// ------------- Head ---------------
     auto bbox_head1 = network->addConvolutionNd(*ssh1->getOutput(0), 2 * 4, DimsHW{1, 1}, weightMap["BboxHead.0.conv1x1.weight"], weightMap["BboxHead.0.conv1x1.bias"]);
     auto bbox_head2 = network->addConvolutionNd(*ssh2->getOutput(0), 2 * 4, DimsHW{1, 1}, weightMap["BboxHead.1.conv1x1.weight"], weightMap["BboxHead.1.conv1x1.bias"]);
     auto bbox_head3 = network->addConvolutionNd(*ssh3->getOutput(0), 2 * 4, DimsHW{1, 1}, weightMap["BboxHead.2.conv1x1.weight"], weightMap["BboxHead.2.conv1x1.bias"]);
@@ -193,7 +174,7 @@ ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder* builder, IBuilder
     auto lmk_head2 = network->addConvolutionNd(*ssh2->getOutput(0), 2 * 10, DimsHW{1, 1}, weightMap["LandmarkHead.1.conv1x1.weight"], weightMap["LandmarkHead.1.conv1x1.bias"]);
     auto lmk_head3 = network->addConvolutionNd(*ssh3->getOutput(0), 2 * 10, DimsHW{1, 1}, weightMap["LandmarkHead.2.conv1x1.weight"], weightMap["LandmarkHead.2.conv1x1.bias"]);
 
-    // ------------- Decode bbox, conf, landmark ---------------
+    //// ------------- Decode bbox, conf, landmark ---------------
     ITensor* inputTensors1[] = {bbox_head1->getOutput(0), cls_head1->getOutput(0), lmk_head1->getOutput(0)};
     auto cat1 = network->addConcatenation(inputTensors1, 3);
     ITensor* inputTensors2[] = {bbox_head2->getOutput(0), cls_head2->getOutput(0), lmk_head2->getOutput(0)};
@@ -220,7 +201,7 @@ ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder* builder, IBuilder
     std::cout << "Your platform support int8: " << builder->platformHasFastInt8() << std::endl;
     assert(builder->platformHasFastInt8());
     config->setFlag(BuilderFlag::kINT8);
-    Int8EntropyCalibrator2 *calibrator = new Int8EntropyCalibrator2(1, INPUT_W, INPUT_H, "./widerface_calib/", "r50_int8calib.table", INPUT_BLOB_NAME);
+    Int8EntropyCalibrator2 *calibrator = new Int8EntropyCalibrator2(1, INPUT_W, INPUT_H, "./widerface_calib/", "mnet_int8calib.table", INPUT_BLOB_NAME);
     config->setInt8Calibrator(calibrator);
 #endif
 
@@ -294,8 +275,8 @@ void doInference(IExecutionContext& context, float* input, float* output, int ba
 int main(int argc, char** argv) {
     if (argc != 2) {
         std::cerr << "arguments not right!" << std::endl;
-        std::cerr << "./retina_r50 -s   // serialize model to plan file" << std::endl;
-        std::cerr << "./retina_r50 -d   // deserialize plan file and run inference" << std::endl;
+        std::cerr << "./retina_mnet -s   // serialize model to plan file" << std::endl;
+        std::cerr << "./retina_mnet -d   // deserialize plan file and run inference" << std::endl;
         return -1;
     }
 
@@ -309,7 +290,7 @@ int main(int argc, char** argv) {
         APIToModel(BATCH_SIZE, &modelStream);
         assert(modelStream != nullptr);
 
-        std::ofstream p("retina_r50.engine", std::ios::binary);
+        std::ofstream p("retina_mnet.engine", std::ios::binary);
         if (!p) {
             std::cerr << "could not open plan output file" << std::endl;
             return -1;
@@ -318,7 +299,7 @@ int main(int argc, char** argv) {
         modelStream->destroy();
         return 1;
     } else if (std::string(argv[1]) == "-d") {
-        std::ifstream file("retina_r50.engine", std::ios::binary);
+        std::ifstream file("retina_mnet.engine", std::ios::binary);
         if (file.good()) {
             file.seekg(0, file.end);
             size = file.tellg();
@@ -337,7 +318,7 @@ int main(int argc, char** argv) {
     //for (int i = 0; i < 3 * INPUT_H * INPUT_W; i++)
     //    data[i] = 1.0;
 
-    cv::Mat img = cv::imread("../images/2.4k.jpeg");
+    cv::Mat img = cv::imread("worlds-largest-selfie.jpg");
     cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
     //cv::imwrite("preprocessed.jpg", pr_img);
 
@@ -362,17 +343,10 @@ int main(int argc, char** argv) {
 
     // Run inference
     static float prob[BATCH_SIZE * OUTPUT_SIZE];
-    int total = 0;
-    int n = 1001;
-    for (int cc = 0; cc < n; cc++) {
-        auto start = std::chrono::system_clock::now();
-        doInference(*context, data, prob, BATCH_SIZE);
-        auto end = std::chrono::system_clock::now();
-        std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
-        if (cc > 0)
-            total += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    }
-    std::cout << (total / (n - 1)) << std::endl;
+    auto start = std::chrono::system_clock::now();
+    doInference(*context, data, prob, BATCH_SIZE);
+    auto end = std::chrono::system_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
 
     for (int b = 0; b < BATCH_SIZE; b++) {
         std::vector<decodeplugin::Detection> res;
