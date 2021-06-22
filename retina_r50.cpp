@@ -7,7 +7,6 @@
 #include "cuda_runtime_api.h"
 #include "logging.h"
 #include "common.hpp"
-#include "calibrator.h"
 
 #define USE_INT8  // set USE_INT8 or USE_FP16 or USE_FP32
 #define DEVICE 0  // GPU id
