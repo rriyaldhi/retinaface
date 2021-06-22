@@ -22,7 +22,7 @@ target_link_libraries(decodeplugin nvinfer cudart)
 find_package(OpenCV)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(retina_r50 ${PROJECT_SOURCE_DIR}/retina_r50.cpp)
+add_executable(main ${PROJECT_SOURCE_DIR}/main.cpp)
 target_link_libraries(retina_r50 nvinfer)
 target_link_libraries(retina_r50 cudart)
 target_link_libraries(retina_r50 decodeplugin)
