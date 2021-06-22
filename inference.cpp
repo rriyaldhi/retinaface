@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     char *trtModelStream{nullptr};
     size_t size{0};
 
-    std::ifstream file("retina_r50.engine", std::ios::binary);
+    std::ifstream file("inference.engine", std::ios::binary);
     if (file.good()) {
         file.seekg(0, file.end);
         size = file.tellg();
