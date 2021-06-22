@@ -34,11 +34,5 @@ target_link_libraries(retina_r50 cudart)
 target_link_libraries(retina_r50 decodeplugin)
 target_link_libraries(retina_r50 ${OpenCV_LIBRARIES})
 
-add_executable(retina_mnet ${PROJECT_SOURCE_DIR}/calibrator.cpp ${PROJECT_SOURCE_DIR}/retina_mnet.cpp)
-target_link_libraries(retina_mnet nvinfer)
-target_link_libraries(retina_mnet cudart)
-target_link_libraries(retina_mnet decodeplugin)
-target_link_libraries(retina_mnet ${OpenCV_LIBRARIES})
-
 add_definitions(-O2 -pthread)
 
