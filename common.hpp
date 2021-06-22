@@ -3,7 +3,6 @@
 #include <opencv2/opencv.hpp>
 #include <dirent.h>
 #include "NvInfer.h"
-#include "decode.h"
 
 using namespace nvinfer1;
 
