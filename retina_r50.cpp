@@ -83,13 +83,11 @@ int main(int argc, char** argv) {
 
     // For multi-batch, I feed the same image multiple times.
     // If you want to process different images in a batch, you need adapt it.
-    for (int b = 0; b < 1; b++) {
-        float *p_data = &data[b * 3 * INPUT_H * INPUT_W];
-        for (int i = 0; i < INPUT_H * INPUT_W; i++) {
-            p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
-            p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
-            p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
-        }
+    float *p_data = &data[0];
+    for (int i = 0; i < INPUT_H * INPUT_W; i++) {
+        p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
+        p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
+        p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
     }
 
     IRuntime* runtime = createInferRuntime(gLogger);
@@ -114,24 +112,22 @@ int main(int argc, char** argv) {
     }
     std::cout << (total / (n - 1)) << std::endl;
 
-    for (int b = 0; b < 1; b++) {
-        std::vector<decodeplugin::Detection> res;
-        nms(res, &prob[b * OUTPUT_SIZE], IOU_THRESH);
-        std::cout << "number of detections -> " << prob[b * OUTPUT_SIZE] << std::endl;
-        std::cout << " -> " << prob[b * OUTPUT_SIZE + 10] << std::endl;
-        std::cout << "after nms -> " << res.size() << std::endl;
-        cv::Mat tmp = img.clone();
-        for (size_t j = 0; j < res.size(); j++) {
-            if (res[j].class_confidence < CONF_THRESH) continue;
-            cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
-            cv::rectangle(tmp, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
-            //cv::putText(tmp, std::to_string((int)(res[j].class_confidence * 100)) + "%", cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 1);
-            for (int k = 0; k < 10; k += 2) {
-                cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
-            }
+    std::vector<decodeplugin::Detection> res;
+    nms(res, &prob[0], IOU_THRESH);
+    std::cout << "number of detections -> " << prob[0] << std::endl;
+    std::cout << " -> " << prob[10] << std::endl;
+    std::cout << "after nms -> " << res.size() << std::endl;
+    cv::Mat tmp = img.clone();
+    for (size_t j = 0; j < res.size(); j++) {
+        if (res[j].class_confidence < CONF_THRESH) continue;
+        cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
+        cv::rectangle(tmp, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
+        //cv::putText(tmp, std::to_string((int)(res[j].class_confidence * 100)) + "%", cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 1);
+        for (int k = 0; k < 10; k += 2) {
+            cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
         }
-        cv::imwrite(std::to_string(b) + "_result.jpg", tmp);
     }
+    cv::imwrite("_result.jpg", tmp);
 
     // Destroy the engine
     context->destroy();
