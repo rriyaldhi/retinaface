@@ -8,7 +8,8 @@
 #include "logging.h"
 #include "common.hpp"
 
-#define DEVICE 0
+#define USE_INT8  // set USE_INT8 or USE_FP16 or USE_FP32
+#define DEVICE 0  // GPU id
 #define BATCH_SIZE 1
 #define CONF_THRESH 0.75
 #define IOU_THRESH 0.4
@@ -74,7 +75,7 @@ int main(int argc, char** argv) {
     }
 
     // prepare input data ---------------------------
-    static float data[3 * INPUT_H * INPUT_W];
+    static float data[BATCH_SIZE * 3 * INPUT_H * INPUT_W];
     //for (int i = 0; i < 3 * INPUT_H * INPUT_W; i++)
     //    data[i] = 1.0;
 
@@ -84,11 +85,13 @@ int main(int argc, char** argv) {
 
     // For multi-batch, I feed the same image multiple times.
     // If you want to process different images in a batch, you need adapt it.
-    float *p_data = &data[3 * INPUT_H * INPUT_W];
-    for (int i = 0; i < INPUT_H * INPUT_W; i++) {
-        p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
-        p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
-        p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
+    for (int b = 0; b < BATCH_SIZE; b++) {
+        float *p_data = &data[b * 3 * INPUT_H * INPUT_W];
+        for (int i = 0; i < INPUT_H * INPUT_W; i++) {
+            p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
+            p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
+            p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
+        }
     }
 
     IRuntime* runtime = createInferRuntime(gLogger);
@@ -100,12 +103,12 @@ int main(int argc, char** argv) {
     assert(context != nullptr);
 
     // Run inference
-    static float prob[OUTPUT_SIZE];
+    static float prob[BATCH_SIZE * OUTPUT_SIZE];
     int total = 0;
     int n = 1001;
     for (int cc = 0; cc < n; cc++) {
         auto start = std::chrono::system_clock::now();
-        doInference(*context, data, prob, 1);
+        doInference(*context, data, prob, BATCH_SIZE);
         auto end = std::chrono::system_clock::now();
         std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
         if (cc > 0)
@@ -113,22 +116,24 @@ int main(int argc, char** argv) {
     }
     std::cout << (total / (n - 1)) << std::endl;
 
-    std::vector<decodeplugin::Detection> res;
-    nms(res, &prob[OUTPUT_SIZE], IOU_THRESH);
-    std::cout << "number of detections -> " << prob[OUTPUT_SIZE] << std::endl;
-    std::cout << " -> " << prob[OUTPUT_SIZE + 10] << std::endl;
-    std::cout << "after nms -> " << res.size() << std::endl;
-    cv::Mat tmp = img.clone();
-    for (size_t j = 0; j < res.size(); j++) {
-        if (res[j].class_confidence < CONF_THRESH) continue;
-        cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
-        cv::rectangle(tmp, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
-        //cv::putText(tmp, std::to_string((int)(res[j].class_confidence * 100)) + "%", cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 1);
-        for (int k = 0; k < 10; k += 2) {
-            cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
+    for (int b = 0; b < BATCH_SIZE; b++) {
+        std::vector<decodeplugin::Detection> res;
+        nms(res, &prob[b * OUTPUT_SIZE], IOU_THRESH);
+        std::cout << "number of detections -> " << prob[b * OUTPUT_SIZE] << std::endl;
+        std::cout << " -> " << prob[b * OUTPUT_SIZE + 10] << std::endl;
+        std::cout << "after nms -> " << res.size() << std::endl;
+        cv::Mat tmp = img.clone();
+        for (size_t j = 0; j < res.size(); j++) {
+            if (res[j].class_confidence < CONF_THRESH) continue;
+            cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
+            cv::rectangle(tmp, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
+            //cv::putText(tmp, std::to_string((int)(res[j].class_confidence * 100)) + "%", cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 1);
+            for (int k = 0; k < 10; k += 2) {
+                cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
+            }
         }
+        cv::imwrite(std::to_string(b) + "_result.jpg", tmp);
     }
-    cv::imwrite("_result.jpg", tmp);
 
     // Destroy the engine
     context->destroy();
