@@ -292,44 +292,21 @@ void doInference(IExecutionContext& context, float* input, float* output, int ba
 }
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cerr << "arguments not right!" << std::endl;
-        std::cerr << "./retina_r50 -s   // serialize model to plan file" << std::endl;
-        std::cerr << "./retina_r50 -d   // deserialize plan file and run inference" << std::endl;
-        return -1;
-    }
 
     cudaSetDevice(DEVICE);
     // create a model using the API directly and serialize it to a stream
     char *trtModelStream{nullptr};
     size_t size{0};
 
-    if (std::string(argv[1]) == "-s") {
-        IHostMemory* modelStream{nullptr};
-        APIToModel(BATCH_SIZE, &modelStream);
-        assert(modelStream != nullptr);
-
-        std::ofstream p("retina_r50.engine", std::ios::binary);
-        if (!p) {
-            std::cerr << "could not open plan output file" << std::endl;
-            return -1;
-        }
-        p.write(reinterpret_cast<const char*>(modelStream->data()), modelStream->size());
-        modelStream->destroy();
-        return 1;
-    } else if (std::string(argv[1]) == "-d") {
-        std::ifstream file("retina_r50.engine", std::ios::binary);
-        if (file.good()) {
-            file.seekg(0, file.end);
-            size = file.tellg();
-            file.seekg(0, file.beg);
-            trtModelStream = new char[size];
-            assert(trtModelStream);
-            file.read(trtModelStream, size);
-            file.close();
-        }
-    } else {
-        return -1;
+    std::ifstream file("retina_r50.engine", std::ios::binary);
+    if (file.good()) {
+        file.seekg(0, file.end);
+        size = file.tellg();
+        file.seekg(0, file.beg);
+        trtModelStream = new char[size];
+        assert(trtModelStream);
+        file.read(trtModelStream, size);
+        file.close();
     }
 
     // prepare input data ---------------------------
