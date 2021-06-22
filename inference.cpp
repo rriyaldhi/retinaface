@@ -54,6 +54,11 @@ void doInference(IExecutionContext& context, float* input, float* output, int ba
 }
 
 int main(int argc, char** argv) {
+    if (argc != 2) {
+        std::cerr << "Argument is required!" << std::endl;
+        std::cerr << "./inference /path/to/image" << std::endl;
+        return -1;
+    }
 
     cudaSetDevice(DEVICE);
     char *trtModelStream{nullptr};
@@ -72,7 +77,7 @@ int main(int argc, char** argv) {
 
     static float data[3 * INPUT_H * INPUT_W];
 
-    cv::Mat img = cv::imread("../images/2.4k.jpeg");
+    cv::Mat img = cv::imread(std::string(argv[1]));
     cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
 
     float *p_data = &data[0];
