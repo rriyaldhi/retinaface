@@ -89,7 +89,6 @@ int main(int argc, char** argv) {
     IExecutionContext* context = engine->createExecutionContext();
     assert(context != nullptr);
 
-    // Run inference
     static float prob[OUTPUT_SIZE];
     doInference(*context, data, prob, 1);
 
@@ -99,12 +98,8 @@ int main(int argc, char** argv) {
     for (size_t j = 0; j < res.size(); j++) {
         if (res[j].class_confidence < CONF_THRESH) continue;
         cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
-        cv::rectangle(tmp, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
-        for (int k = 0; k < 10; k += 2) {
-            cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
-        }
+        std::cout << r.x << " " << r.y << " " << r.width << " " << r.height << std::endl;
     }
-    cv::imwrite("_result.jpg", tmp);
 
     context->destroy();
     engine->destroy();
