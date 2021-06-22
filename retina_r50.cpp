@@ -73,14 +73,14 @@ int main(int argc, char** argv) {
     static float data[3 * INPUT_H * INPUT_W];
 
     cv::Mat img = cv::imread("../images/2.4k.jpeg");
-    cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
-
-    float *p_data = &data[3 * INPUT_H * INPUT_W];
-    for (int i = 0; i < INPUT_H * INPUT_W; i++) {
-        p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
-        p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
-        p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
-    }
+//    cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
+//
+//    float *p_data = &data[3 * INPUT_H * INPUT_W];
+//    for (int i = 0; i < INPUT_H * INPUT_W; i++) {
+//        p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
+//        p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
+//        p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
+//    }
 
 //    IRuntime* runtime = createInferRuntime(gLogger);
 //    assert(runtime != nullptr);
