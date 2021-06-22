@@ -102,10 +102,10 @@ int main(int argc, char** argv) {
     std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
 
     std::cout << "postprocessing" << std::endl;
-    auto start = std::chrono::system_clock::now();
+    start = std::chrono::system_clock::now();
     std::vector<decodeplugin::Detection> res;
     nms(res, &prob[0], IOU_THRESH);
-    auto end = std::chrono::system_clock::now();
+    end = std::chrono::system_clock::now();
     std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
     cv::Mat tmp = img.clone();
     for (size_t j = 0; j < res.size(); j++) {
