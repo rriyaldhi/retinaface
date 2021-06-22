@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     }
 
     // prepare input data ---------------------------
-    static float data[1 * 3 * INPUT_H * INPUT_W];
+    static float data[3 * INPUT_H * INPUT_W];
     //for (int i = 0; i < 3 * INPUT_H * INPUT_W; i++)
     //    data[i] = 1.0;
 
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
     assert(context != nullptr);
 
     // Run inference
-    static float prob[1 * OUTPUT_SIZE];
+    static float prob[OUTPUT_SIZE];
     int total = 0;
     int n = 1001;
     for (int cc = 0; cc < n; cc++) {
