@@ -8,13 +8,12 @@
 #include "logging.h"
 #include "common.hpp"
 
-#define DEVICE 0  // GPU id
+#define DEVICE 0
 #define CONF_THRESH 0.75
 #define IOU_THRESH 0.4
 
-// stuff we know about the network and the input/output blobs
-static const int INPUT_H = decodeplugin::INPUT_H;  // H, W must be able to  be divided by 32.
-static const int INPUT_W = decodeplugin::INPUT_W;;
+static const int INPUT_H = decodeplugin::INPUT_H;
+static const int INPUT_W = decodeplugin::INPUT_W;
 static const int OUTPUT_SIZE = (INPUT_H / 8 * INPUT_W / 8 + INPUT_H / 16 * INPUT_W / 16 + INPUT_H / 32 * INPUT_W / 32) * 2  * 15 + 1;
 const char* INPUT_BLOB_NAME = "data";
 const char* OUTPUT_BLOB_NAME = "prob";
@@ -77,7 +76,6 @@ int main(int argc, char** argv) {
 
     cv::Mat img = cv::imread("../images/2.4k.jpeg");
     cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
-    //cv::imwrite("preprocessed.jpg", pr_img);
 
     // For multi-batch, I feed the same image multiple times.
     // If you want to process different images in a batch, you need adapt it.
