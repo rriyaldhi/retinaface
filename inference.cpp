@@ -75,18 +75,6 @@ int main(int argc, char** argv) {
         file.close();
     }
 
-    static float data[3 * INPUT_H * INPUT_W];
-
-    cv::Mat img = cv::imread(std::string(argv[1]));
-    cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
-
-    float *p_data = &data[0];
-    for (int i = 0; i < INPUT_H * INPUT_W; i++) {
-        p_data[i] = pr_img.at<cv::Vec3b>(i)[0];
-        p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1];
-        p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2];
-    }
-
     IRuntime* runtime = createInferRuntime(gLogger);
     assert(runtime != nullptr);
     ICudaEngine* engine = runtime->deserializeCudaEngine(trtModelStream, size);
@@ -97,6 +85,15 @@ int main(int argc, char** argv) {
     static float prob[OUTPUT_SIZE];
     std::cout << "inferencing" << std::endl;
     for (int i = 0; i < 5; i++) {
+        static float data[3 * INPUT_H * INPUT_W];
+        cv::Mat img = cv::imread(std::string(argv[1 + i]));
+        cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
+        float *p_data = &data[0];
+        for (int i = 0; i < INPUT_H * INPUT_W; i++) {
+            p_data[i] = pr_img.at<cv::Vec3b>(i)[0];
+            p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1];
+            p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2];
+        }
         auto start = std::chrono::system_clock::now();
         doInference(*context, data, prob, 1);
         auto end = std::chrono::system_clock::now();
