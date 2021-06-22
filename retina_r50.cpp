@@ -77,9 +77,9 @@ int main(int argc, char** argv) {
 
     float *p_data = &data[0];
     for (int i = 0; i < INPUT_H * INPUT_W; i++) {
-        p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
-        p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
-        p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
+        p_data[i] = pr_img.at<cv::Vec3b>(i)[0];
+        p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1];
+        p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2];
     }
 
     IRuntime* runtime = createInferRuntime(gLogger);
