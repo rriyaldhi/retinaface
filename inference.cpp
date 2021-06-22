@@ -82,9 +82,11 @@ int main(int argc, char** argv) {
     IExecutionContext* context = engine->createExecutionContext();
     assert(context != nullptr);
 
-    static float data[3 * INPUT_H * INPUT_W];
+    // Read input from file
     cv::Mat img = cv::imread(std::string(argv[1]));
+
     cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
+    static float data[3 * INPUT_H * INPUT_W];
     float *p_data = &data[0];
     for (int i = 0; i < INPUT_H * INPUT_W; i++) {
         p_data[i] = pr_img.at<cv::Vec3b>(i)[0];
@@ -103,6 +105,8 @@ int main(int argc, char** argv) {
     for (size_t j = 0; j < res.size(); j++) {
         if (res[j].class_confidence < CONF_THRESH) continue;
         cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
+
+        // Output boundary box
         std::cout << r.x << " " << r.y << " " << r.width << " " << r.height << std::endl;
     }
 
