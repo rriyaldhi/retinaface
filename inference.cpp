@@ -95,8 +95,8 @@ int main(int argc, char** argv) {
     assert(context != nullptr);
 
     static float prob[OUTPUT_SIZE];
-    for (int i = 0; i < 2; i++) {
-        std::cout << "inferencing" << std::endl;
+    std::cout << "inferencing" << std::endl;
+    for (int i = 0; i < 5; i++) {
         auto start = std::chrono::system_clock::now();
         doInference(*context, data, prob, 1);
         auto end = std::chrono::system_clock::now();
@@ -107,14 +107,14 @@ int main(int argc, char** argv) {
     auto start = std::chrono::system_clock::now();
     std::vector<decodeplugin::Detection> res;
     nms(res, &prob[0], IOU_THRESH);
-    auto end = std::chrono::system_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
     cv::Mat tmp = img.clone();
     for (size_t j = 0; j < res.size(); j++) {
         if (res[j].class_confidence < CONF_THRESH) continue;
         cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
         std::cout << r.x << " " << r.y << " " << r.width << " " << r.height << std::endl;
     }
+    auto end = std::chrono::system_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
 
     context->destroy();
     engine->destroy();
