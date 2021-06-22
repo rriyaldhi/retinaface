@@ -95,10 +95,10 @@ int main(int argc, char** argv) {
     assert(context != nullptr);
 
     static float prob[OUTPUT_SIZE];
-    std::cout << "inferencing" << endl;
+    std::cout << "inferencing" << std::endl;
     doInference(*context, data, prob, 1);
 
-    std::cout << "postprocessing" << endl;
+    std::cout << "postprocessing" << std::endl;
     std::vector<decodeplugin::Detection> res;
     nms(res, &prob[0], IOU_THRESH);
     cv::Mat tmp = img.clone();
