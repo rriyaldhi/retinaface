@@ -95,11 +95,13 @@ int main(int argc, char** argv) {
     assert(context != nullptr);
 
     static float prob[OUTPUT_SIZE];
-    std::cout << "inferencing" << std::endl;
-    auto start = std::chrono::system_clock::now();
-    doInference(*context, data, prob, 1);
-    auto end = std::chrono::system_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
+    for (int i = 0; i < 2; i++) {
+        std::cout << "inferencing" << std::endl;
+        auto start = std::chrono::system_clock::now();
+        doInference(*context, data, prob, 1);
+        auto end = std::chrono::system_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us" << std::endl;
+    }
 
     std::cout << "postprocessing" << std::endl;
     start = std::chrono::system_clock::now();
