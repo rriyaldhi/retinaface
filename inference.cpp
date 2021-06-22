@@ -54,9 +54,9 @@ void doInference(IExecutionContext& context, float* input, float* output, int ba
 }
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
+    if (argc < 2) {
         std::cerr << "Argument is required!" << std::endl;
-        std::cerr << "./inference /path/to/image" << std::endl;
+        std::cerr << "./inference /path/to/image..." << std::endl;
         return -1;
     }
 
