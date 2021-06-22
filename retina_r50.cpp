@@ -69,47 +69,47 @@ int main(int argc, char** argv) {
         file.close();
     }
 
-    // prepare input data ---------------------------
-    static float data[3 * INPUT_H * INPUT_W];
-
-    cv::Mat img = cv::imread("../images/2.4k.jpeg");
-    cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
-
-    float *p_data = &data[3 * INPUT_H * INPUT_W];
-    for (int i = 0; i < INPUT_H * INPUT_W; i++) {
-        p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
-        p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
-        p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
-    }
-
-    IRuntime* runtime = createInferRuntime(gLogger);
-    assert(runtime != nullptr);
-    ICudaEngine* engine = runtime->deserializeCudaEngine(trtModelStream, size);
-    assert(engine != nullptr);
-    IExecutionContext* context = engine->createExecutionContext();
-    assert(context != nullptr);
-
-    // Run inference
-    static float prob[OUTPUT_SIZE];
-    doInference(*context, data, prob);
-
-    std::vector<decodeplugin::Detection> res;
-    nms(res, &prob[OUTPUT_SIZE], IOU_THRESH);
-    cv::Mat tmp = img.clone();
-    for (size_t j = 0; j < res.size(); j++) {
-        if (res[j].class_confidence < CONF_THRESH) continue;
-        cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
-        cv::rectangle(tmp, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
-        for (int k = 0; k < 10; k += 2) {
-            cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
-        }
-    }
-    cv::imwrite("_result.jpg", tmp);
-
-    // Destroy the engine
-    context->destroy();
-    engine->destroy();
-    runtime->destroy();
+//    // prepare input data ---------------------------
+//    static float data[3 * INPUT_H * INPUT_W];
+//
+//    cv::Mat img = cv::imread("../images/2.4k.jpeg");
+//    cv::Mat pr_img = preprocess_img(img, INPUT_W, INPUT_H);
+//
+//    float *p_data = &data[3 * INPUT_H * INPUT_W];
+//    for (int i = 0; i < INPUT_H * INPUT_W; i++) {
+//        p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
+//        p_data[i + INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
+//        p_data[i + 2 * INPUT_H * INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
+//    }
+//
+//    IRuntime* runtime = createInferRuntime(gLogger);
+//    assert(runtime != nullptr);
+//    ICudaEngine* engine = runtime->deserializeCudaEngine(trtModelStream, size);
+//    assert(engine != nullptr);
+//    IExecutionContext* context = engine->createExecutionContext();
+//    assert(context != nullptr);
+//
+//    // Run inference
+//    static float prob[OUTPUT_SIZE];
+//    doInference(*context, data, prob);
+//
+//    std::vector<decodeplugin::Detection> res;
+//    nms(res, &prob[OUTPUT_SIZE], IOU_THRESH);
+//    cv::Mat tmp = img.clone();
+//    for (size_t j = 0; j < res.size(); j++) {
+//        if (res[j].class_confidence < CONF_THRESH) continue;
+//        cv::Rect r = get_rect_adapt_landmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
+//        cv::rectangle(tmp, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
+//        for (int k = 0; k < 10; k += 2) {
+//            cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
+//        }
+//    }
+//    cv::imwrite("_result.jpg", tmp);
+//
+//    // Destroy the engine
+//    context->destroy();
+//    engine->destroy();
+//    runtime->destroy();
 
     return 0;
 }
