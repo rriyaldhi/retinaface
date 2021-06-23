@@ -32,10 +32,6 @@ using namespace nvinfer1;
         }\
     } while (0)
 
-static bool cmp(const decodeplugin::Detection& a, const decodeplugin::Detection& b) {
-    return a.class_confidence > b.class_confidence;
-}
-
 class RetinaFace
 {
 private:
@@ -54,6 +50,7 @@ private:
     static inline cv::Mat preprocess(cv::Mat& img, int input_w, int input_h);
     static cv::Rect getRectangles(cv::Mat& img, int input_w, int input_h, float *bbox, float *lmk);
     static float iou(float lbox[4], float rbox[4]);
+    static bool cmp(const decodeplugin::Detection& a, const decodeplugin::Detection& b);
     static inline void nms(std::vector<decodeplugin::Detection>& res, float *output, float nms_thresh);
 public:
     RetinaFace();

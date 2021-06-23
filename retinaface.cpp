@@ -161,6 +161,10 @@ float RetinaFace::iou(float lbox[4], float rbox[4]) {
     return interBoxS / ((lbox[2] - lbox[0]) * (lbox[3] - lbox[1]) + (rbox[2] - rbox[0]) * (rbox[3] - rbox[1]) -interBoxS + 0.000001f);
 }
 
+bool RetinaFace::cmp(const decodeplugin::Detection& a, const decodeplugin::Detection& b) {
+    return a.class_confidence > b.class_confidence;
+}
+
 void RetinaFace::nms(std::vector<decodeplugin::Detection>& res, float *output, float nms_thresh = 0.4) {
     std::vector<decodeplugin::Detection> dets;
     for (int i = 0; i < output[0]; i++) {
@@ -169,7 +173,7 @@ void RetinaFace::nms(std::vector<decodeplugin::Detection>& res, float *output, f
         memcpy(&det, &output[15 * i + 1], sizeof(decodeplugin::Detection));
         dets.push_back(det);
     }
-    std::sort(dets.begin(), dets.end(), cmp);
+    std::sort(dets.begin(), dets.end(), RetinaFace::cmp);
     for (size_t m = 0; m < dets.size(); ++m) {
         auto& item = dets[m];
         res.push_back(item);
