@@ -38,8 +38,8 @@ private:
     static const int INPUT_H = decodeplugin::INPUT_H;
     static const int INPUT_W = decodeplugin::INPUT_W;
     static const int OUTPUT_SIZE = (INPUT_H / 8 * INPUT_W / 8 + INPUT_H / 16 * INPUT_W / 16 + INPUT_H / 32 * INPUT_W / 32) * 2  * 15 + 1;
-    const char* INPUT_BLOB_NAME = "data";
-    const char* OUTPUT_BLOB_NAME = "prob";
+    static const char* INPUT_BLOB_NAME = "data";
+    static const char* OUTPUT_BLOB_NAME = "prob";
 
     IRuntime* runtime;
     ICudaEngine* engine;

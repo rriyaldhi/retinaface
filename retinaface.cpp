@@ -29,7 +29,7 @@ void RetinaFace::initializeEngine() {
     assert(context != nullptr);
 }
 
-void RetinaFace::doInference(IExecutionContext* context, float* input, float* output, int batchSize) {
+void RetinaFace:: doInference(IExecutionContext* context, float* input, float* output, int batchSize) {
     const ICudaEngine& engine = context->getEngine();
 
     // Pointers to input and output device buffers to pass to engine.
