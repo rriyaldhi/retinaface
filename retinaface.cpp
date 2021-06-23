@@ -75,7 +75,7 @@ std::vector<cv::Rect> RetinaFace::infer(std::string imagePath) {
 
     static float prob[OUTPUT_SIZE];
     std::cout << "inferencing" << std::endl;
-    doInference(*context, data, prob, 1);
+    this->doInference(*context, data, prob, 1);
 
     std::cout << "postprocessing" << std::endl;
     std::vector<decodeplugin::Detection> res;
