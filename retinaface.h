@@ -45,8 +45,8 @@ private:
     ICudaEngine* engine;
     IExecutionContext* context;
     void initializeEngine();
-    void doInference(IExecutionContext* context, float* input, float* output, int batchSize);
 
+    static void doInference(IExecutionContext* context, float* input, float* output, int batchSize);
     static inline cv::Mat preprocess(cv::Mat& img, int input_w, int input_h);
     static cv::Rect getRectangles(cv::Mat& img, int input_w, int input_h, float *bbox, float *lmk);
     static float iou(float lbox[4], float rbox[4]);
