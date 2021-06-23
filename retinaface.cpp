@@ -20,7 +20,7 @@ void RetinaFace::initializeEngine() {
         file.close();
     }
 
-    this->runtime = createInferRuntime(gLogger);
+    this->runtime = createInferRuntime(RetinaFace::logger);
     assert(runtime != nullptr);
     this->engine = this->runtime->deserializeCudaEngine(trtModelStream, size);
     assert(engine != nullptr);
