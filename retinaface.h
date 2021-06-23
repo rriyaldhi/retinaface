@@ -89,7 +89,7 @@ private:
     void doInference(IExecutionContext* context, float* input, float* output, int batchSize);
 
     static inline cv::Mat preprocess(cv::Mat& img, int input_w, int input_h);
-    static cv::Rect get_rect_adapt_landmark(cv::Mat& img, int input_w, int input_h, float bbox[4], float lmk[10]);
+    static cv::Rect getRectangles(cv::Mat& img, int input_w, int input_h, float *bbox, float *lmk);
 public:
     RetinaFace();
     std::vector<cv::Rect> infer(std::string imagePath);

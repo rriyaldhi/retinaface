@@ -85,7 +85,7 @@ std::vector<cv::Rect> RetinaFace::infer(std::string imagePath) {
     std::vector<cv::Rect> rectangles;
     for (size_t j = 0; j < res.size(); j++) {
         if (res[j].class_confidence < CONF_THRESH) continue;
-        cv::Rect rectangle = get_rect_adapt_landmark(tmp, RetinaFace::INPUT_W, RetinaFace::INPUT_H, res[j].bbox, res[j].landmark);
+        cv::Rect rectangle = getRectangles(tmp, RetinaFace::INPUT_W, RetinaFace::INPUT_H, res[j].bbox, res[j].landmark);
         rectangles.push_back(rectangle);
     }
 
@@ -120,7 +120,7 @@ cv::Mat RetinaFace::preprocess(cv::Mat &img, int input_w, int input_h) {
     return out;
 }
 
-cv::Rect RetinaFace::get_rect_adapt_landmark(cv::Mat& img, int input_w, int input_h, float bbox[4], float lmk[10]) {
+cv::Rect RetinaFace::getRectangles(cv::Mat& img, int input_w, int input_h, float *bbox, float *lmk) {
     int l, r, t, b;
     float r_w = input_w / (img.cols * 1.0);
     float r_h = input_h / (img.rows * 1.0);
