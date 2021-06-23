@@ -158,7 +158,7 @@ void RetinaFace::nms(std::vector<decodeplugin::Detection>& res, float *output, f
     for (size_t m = 0; m < dets.size(); ++m) {
         auto& item = dets[m];
         res.push_back(item);
-        //std::cout << item.class_confidence << " bbox " << item.bbox[0] << ", " << item.bbox[1] << ", " << item.bbox[2] << ", " << item.bbox[3] << std::endl;
+
         for (size_t n = m + 1; n < dets.size(); ++n) {
             if (iou(item.bbox, dets[n].bbox) > nms_thresh) {
                 dets.erase(dets.begin()+n);
