@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include "retinaface.h"
 
 int main(int argc, char** argv) {
 
