@@ -68,7 +68,7 @@ private:
 
     static inline cv::Mat preprocess(cv::Mat& img, int input_w, int input_h);
     static cv::Rect getRectangles(cv::Mat& img, int input_w, int input_h, float *bbox, float *lmk);
-    static inline void nms(std::vector<decodeplugin::Detection>& res, float *output, float nms_thresh = 0.4);
+    static inline void nms(std::vector<decodeplugin::Detection>& res, float *output, float nms_thresh);
 public:
     RetinaFace();
     std::vector<cv::Rect> infer(std::string imagePath);
