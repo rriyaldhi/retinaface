@@ -1,72 +1,53 @@
 # RetinaFace
 
- The pytorch implementation is [biubug6/Pytorch_Retinaface](https://github.com/biubug6/Pytorch_Retinaface), I forked it into 
-[wang-xinyu/Pytorch_Retinaface](https://github.com/wang-xinyu/Pytorch_Retinaface) and add genwts.py
+The implementation is based on https://github.com/wang-xinyu/Pytorch_Retinaface and https://github.com/wang-xinyu/tensorrtx/tree/master/retinaface.
 
-This branch is using TensorRT 7 API, branch [trt4->retinaface](https://github.com/wang-xinyu/tensorrtx/tree/trt4/retinaface) is using TensorRT 4.
+## Dependencies
 
-## Config
+Below is the installation script for the required dependencies on Ubuntu Server 18.04.
 
-- Input shape `INPUT_H`, `INPUT_W` defined in `decode.h`
-- INT8/FP16/FP32 can be selected by the macro `USE_FP16` or `USE_INT8` or `USE_FP32` in `retina_r50.cpp`
-- GPU id can be selected by the macro `DEVICE` in `retina_r50.cpp`
-- Batchsize can be selected by the macro `BATCHSIZE` in `retina_r50.cpp`
-
-## Run
-
-The following described how to run `retina_r50`. While `retina_mnet` is nearly the same, just generate `retinaface.wts` with `mobilenet0.25_Final.pth` and run `retina_mnet`.
-
-1. generate retinaface.wts from pytorch implementation https://github.com/wang-xinyu/Pytorch_Retinaface
-
+### Cuda 11.1
 ```
-git clone https://github.com/wang-xinyu/Pytorch_Retinaface.git
-// download its weights 'Resnet50_Final.pth', put it in Pytorch_Retinaface/weights
-cd Pytorch_Retinaface
-python detect.py --save_model
-python genwts.py
-// a file 'retinaface.wts' will be generated.
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+wget https://developer.download.nvidia.com/compute/cuda/11.1.1/local_installers/cuda-repo-ubuntu1804-11-1-local_11.1.1-455.32.00-1_amd64.deb
+sudo dpkg -i cuda-repo-ubuntu1804-11-1-local_11.1.1-455.32.00-1_amd64.deb
+sudo apt-key add /var/cuda-repo-ubuntu1804-11-1-local/7fa2af80.pub
+sudo apt-get update
+sudo apt-get -y install cuda
+rm cuda-repo-ubuntu1804-11-1-local_11.1.1-455.32.00-1_amd64.deb
 ```
 
-2. put retinaface.wts into tensorrtx/retinaface, build and run
-
+### TensorRT
 ```
-git clone https://github.com/wang-xinyu/tensorrtx.git
-cd tensorrtx/retinaface
-// put retinaface.wts here
-mkdir build
-cd build
-cmake ..
-make
-sudo ./retina_r50 -s  // build and serialize model to file i.e. 'retina_r50.engine'
-wget https://github.com/Tencent/FaceDetection-DSFD/raw/master/data/worlds-largest-selfie.jpg
-sudo ./retina_r50 -d  // deserialize model file and run inference.
+gdown https://drive.google.com/uc?id=1fvoEa3BfAOvlDTsi9MByHtj5ciRjQcQY
+sudo dpkg -i nv-tensorrt-repo-ubuntu1804-cuda11.1-trt7.2.3.4-ga-20210226_1-1_amd64.deb
+sudo apt-key add /var/nv-tensorrt-repo-ubuntu1804-cuda11.1-trt7.2.3.4-ga-20210226/7fa2af80.pub
+sudo apt-get update
+sudo apt-get install -y tensorrt python3-libnvinfer-dev
+rm nv-tensorrt-repo-ubuntu1804-cuda11.1-trt7.2.3.4-ga-20210226_1-1_amd64.deb
 ```
 
-3. check the images generated, as follows. 0_result.jpg
-
-4. we also provide a python wrapper
+### OpenCV
 
 ```
-// install python-tensorrt, pycuda, etc.
-// ensure the retina_r50.engine and libdecodeplugin.so have been built
-python retinaface_trt.py
+# install opencv
+sudo apt-get install -y build-essential
+sudo apt-get install -y cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+sudo apt-get install -y python3-dev python3-numpy python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
+sudo add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main"
+sudo apt update
+sudo apt install -y libjasper-dev
+wget https://github.com/opencv/opencv/archive/4.3.0.zip
+unzip 4.3.0.zip
+rm 4.3.0.zip
+mv opencv-4.3.0 opencv
+cd opencv
+mkdir build && cd build
+cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local ..
+make -j4
+sudo make install
 ```
 
-# INT8 Quantization
-
-1. Prepare calibration images, you can randomly select 1000s images from your train set. For widerface, you can also download my calibration images `widerface_calib` from [GoogleDrive](https://drive.google.com/drive/folders/1s7jE9DtOngZMzJC1uL307J2MiaGwdRSI?usp=sharing) or [BaiduPan](https://pan.baidu.com/s/1GOm_-JobpyLMAqZWCDUhKg) pwd: a9wh
-
-2. unzip it in retinaface/build
-
-3. set the macro `USE_INT8` in retina_r50.cpp and make
-
-4. serialize the model and test
-
-<p align="center">
-<img src="https://user-images.githubusercontent.com/15235574/78901890-9077fb80-7aab-11ea-94f1-237f51fcc347.jpg">
-</p>
-
-## More Information
-
-Check the readme in [home page.](https://github.com/wang-xinyu/tensorrtx)
-
+## Usage
+Example usage can be found in [inference.cpp](https://github.com/rriyaldhi/retinaface/blob/main/inference.cpp).
