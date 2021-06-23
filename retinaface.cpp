@@ -39,8 +39,8 @@ void RetinaFace:: doInference(IExecutionContext* context, float* input, float* o
 
     // In order to bind the buffers, we need to know the names of the input and output tensors.
     // Note that indices are guaranteed to be less than IEngine::getNbBindings()
-    const int inputIndex = engine.getBindingIndex(RetinaFace::INPUT_BLOB_NAME);
-    const int outputIndex = engine.getBindingIndex(RetinaFace::OUTPUT_BLOB_NAME);
+    const int inputIndex = engine.getBindingIndex("data");
+    const int outputIndex = engine.getBindingIndex("prob");
 
     // Create GPU buffers on device
     CHECK(cudaMalloc(&buffers[inputIndex], batchSize * 3 * RetinaFace::INPUT_H * RetinaFace::INPUT_W * sizeof(float)));
