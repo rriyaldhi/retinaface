@@ -98,7 +98,7 @@ RetinaFace::~RetinaFace() {
     this->runtime->destroy();
 }
 
-int RetinaFace::preprocess(cv::Mat &img, int input_w, int input_h) {
+cv::Mat RetinaFace::preprocess(cv::Mat &img, int input_w, int input_h) {
     int w, h, x, y;
     float r_w = input_w / (img.cols*1.0);
     float r_h = input_h / (img.rows*1.0);
