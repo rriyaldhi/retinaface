@@ -65,7 +65,7 @@ void RetinaFace::doInference(IExecutionContext* context, float* input, float* ou
 std::vector<cv::Rect> RetinaFace::infer(std::string imagePath) {
     cv::Mat img = cv::imread(imagePath);
 
-    cv::Mat pr_img = preprocess_img(img, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
+    cv::Mat pr_img = RetinaFace::preprocess(img, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
     static float data[3 * RetinaFace::INPUT_H * RetinaFace::INPUT_W];
     float *p_data = &data[0];
     for (int i = 0; i < RetinaFace::INPUT_H * RetinaFace::INPUT_W; i++) {
@@ -96,5 +96,27 @@ RetinaFace::~RetinaFace() {
     this->context->destroy();
     this->engine->destroy();
     this->runtime->destroy();
+}
+
+int RetinaFace::preprocess(cv::Mat &img, int input_w, int input_h) {
+    int w, h, x, y;
+    float r_w = input_w / (img.cols*1.0);
+    float r_h = input_h / (img.rows*1.0);
+    if (r_h > r_w) {
+        w = input_w;
+        h = r_w * img.rows;
+        x = 0;
+        y = (input_h - h) / 2;
+    } else {
+        w = r_h * img.cols;
+        h = input_h;
+        x = (input_w - w) / 2;
+        y = 0;
+    }
+    cv::Mat re(h, w, CV_8UC3);
+    cv::resize(img, re, re.size(), 0, 0, cv::INTER_LINEAR);
+    cv::Mat out(input_h, input_w, CV_8UC3, cv::Scalar(128, 128, 128));
+    re.copyTo(out(cv::Rect(x, y, re.cols, re.rows)));
+    return out;
 }
 
