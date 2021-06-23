@@ -20,16 +20,16 @@ void RetinaFace::initializeEngine() {
         file.close();
     }
 
-    IRuntime* runtime = createInferRuntime(gLogger);
+    this->runtime = createInferRuntime(gLogger);
     assert(runtime != nullptr);
-    this->engine = runtime->deserializeCudaEngine(trtModelStream, size);
+    this->engine = this->runtime->deserializeCudaEngine(trtModelStream, size);
     assert(engine != nullptr);
-    IExecutionContext* context = engine->createExecutionContext();
+    this->context = this->engine->createExecutionContext();
     assert(context != nullptr);
 }
 
-void RetinaFace::doInference(IExecutionContext& context, float* input, float* output, int batchSize) {
-    const ICudaEngine& engine = context.getEngine();
+void RetinaFace::doInference(IExecutionContext* context, float* input, float* output, int batchSize) {
+    const ICudaEngine& engine = context->getEngine();
 
     // Pointers to input and output device buffers to pass to engine.
     // Engine requires exactly IEngine::getNbBindings() number of buffers.
@@ -51,7 +51,7 @@ void RetinaFace::doInference(IExecutionContext& context, float* input, float* ou
 
     // DMA input batch data to device, infer on the batch asynchronously, and DMA output back to host
     CHECK(cudaMemcpyAsync(buffers[inputIndex], input, batchSize * 3 * INPUT_H * INPUT_W * sizeof(float), cudaMemcpyHostToDevice, stream));
-    context.enqueue(batchSize, buffers, stream, nullptr);
+    context->enqueue(batchSize, buffers, stream, nullptr);
     CHECK(cudaMemcpyAsync(output, buffers[outputIndex], batchSize * OUTPUT_SIZE * sizeof(float), cudaMemcpyDeviceToHost, stream));
     cudaStreamSynchronize(stream);
 
@@ -75,7 +75,7 @@ std::vector<cv::Rect> RetinaFace::infer(std::string imagePath) {
 
     static float prob[OUTPUT_SIZE];
     std::cout << "inferencing" << std::endl;
-    this->doInference(*context, data, prob, 1);
+    this->doInference(this->context, data, prob, 1);
 
     std::cout << "postprocessing" << std::endl;
     std::vector<decodeplugin::Detection> res;
@@ -92,8 +92,8 @@ std::vector<cv::Rect> RetinaFace::infer(std::string imagePath) {
 }
 
 RetinaFace::~RetinaFace() {
-    context->destroy();
-    engine->destroy();
-    runtime->destroy();
+    this->context->destroy();
+    this->engine->destroy();
+    this->runtime->destroy();
 }
 

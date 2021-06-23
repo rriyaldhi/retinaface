@@ -27,9 +27,11 @@ static Logger gLogger;
 class RetinaFace
 {
 private:
+    IRuntime* runtime;
     ICudaEngine* engine;
+    IExecutionContext* context;
     void initializeEngine();
-    void doInference(IExecutionContext& context, float* input, float* output, int batchSize);
+    void doInference(IExecutionContext* context, float* input, float* output, int batchSize);
 public:
     RetinaFace();
     std::vector<cv::Rect> infer(std::string imagePath);
