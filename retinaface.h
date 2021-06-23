@@ -32,7 +32,7 @@ using namespace nvinfer1;
         }\
     } while (0)
 
-static inline cv::Rect get_rect_adapt_landmark(cv::Mat& img, int input_w, int input_h, float bbox[4], float lmk[10]) {
+static cv::Rect get_rect_adapt_landmark(cv::Mat& img, int input_w, int input_h, float bbox[4], float lmk[10]) {
     int l, r, t, b;
     float r_w = input_w / (img.cols * 1.0);
     float r_h = input_h / (img.rows * 1.0);
