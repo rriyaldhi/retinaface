@@ -17,16 +17,16 @@
 #define CONF_THRESH 0.75
 #define IOU_THRESH 0.4
 
-static const int INPUT_H = decodeplugin::INPUT_H;
-static const int INPUT_W = decodeplugin::INPUT_W;
-static const int OUTPUT_SIZE = (INPUT_H / 8 * INPUT_W / 8 + INPUT_H / 16 * INPUT_W / 16 + INPUT_H / 32 * INPUT_W / 32) * 2  * 15 + 1;
-const char* INPUT_BLOB_NAME = "data";
-const char* OUTPUT_BLOB_NAME = "prob";
-static Logger gLogger;
-
 class RetinaFace
 {
 private:
+    static const int INPUT_H = decodeplugin::INPUT_H;
+    static const int INPUT_W = decodeplugin::INPUT_W;
+    static const int OUTPUT_SIZE = (INPUT_H / 8 * INPUT_W / 8 + INPUT_H / 16 * INPUT_W / 16 + INPUT_H / 32 * INPUT_W / 32) * 2  * 15 + 1;
+    const char* INPUT_BLOB_NAME = "data";
+    const char* OUTPUT_BLOB_NAME = "prob";
+    static Logger gLogger;
+
     IRuntime* runtime;
     ICudaEngine* engine;
     IExecutionContext* context;
