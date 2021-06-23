@@ -85,7 +85,7 @@ std::vector<cv::Rect> RetinaFace::infer(std::string imagePath) {
     std::vector<cv::Rect> rectangles;
     for (size_t j = 0; j < res.size(); j++) {
         if (res[j].class_confidence < CONF_THRESH) continue;
-        cv::Rect rectangle = getRectangles(tmp, RetinaFace::INPUT_W, RetinaFace::INPUT_H, res[j].bbox, res[j].landmark);
+        cv::Rect rectangle = RetinaFace::getRectangles(tmp, RetinaFace::INPUT_W, RetinaFace::INPUT_H, res[j].bbox, res[j].landmark);
         rectangles.push_back(rectangle);
     }
 
