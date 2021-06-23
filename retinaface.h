@@ -51,28 +51,6 @@ static bool cmp(const decodeplugin::Detection& a, const decodeplugin::Detection&
     return a.class_confidence > b.class_confidence;
 }
 
-static inline void nms(std::vector<decodeplugin::Detection>& res, float *output, float nms_thresh = 0.4) {
-    std::vector<decodeplugin::Detection> dets;
-    for (int i = 0; i < output[0]; i++) {
-        if (output[15 * i + 1 + 4] <= 0.1) continue;
-        decodeplugin::Detection det;
-        memcpy(&det, &output[15 * i + 1], sizeof(decodeplugin::Detection));
-        dets.push_back(det);
-    }
-    std::sort(dets.begin(), dets.end(), cmp);
-    for (size_t m = 0; m < dets.size(); ++m) {
-        auto& item = dets[m];
-        res.push_back(item);
-        //std::cout << item.class_confidence << " bbox " << item.bbox[0] << ", " << item.bbox[1] << ", " << item.bbox[2] << ", " << item.bbox[3] << std::endl;
-        for (size_t n = m + 1; n < dets.size(); ++n) {
-            if (iou(item.bbox, dets[n].bbox) > nms_thresh) {
-                dets.erase(dets.begin()+n);
-                --n;
-            }
-        }
-    }
-}
-
 class RetinaFace
 {
 private:
@@ -90,6 +68,7 @@ private:
 
     static inline cv::Mat preprocess(cv::Mat& img, int input_w, int input_h);
     static cv::Rect getRectangles(cv::Mat& img, int input_w, int input_h, float *bbox, float *lmk);
+    static inline void nms(std::vector<decodeplugin::Detection>& res, float *output, float nms_thresh = 0.4);
 public:
     RetinaFace();
     std::vector<cv::Rect> infer(std::string imagePath);

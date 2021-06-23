@@ -80,7 +80,7 @@ std::vector<cv::Rect> RetinaFace::infer(std::string imagePath) {
 
     std::cout << "postprocessing" << std::endl;
     std::vector<decodeplugin::Detection> res;
-    nms(res, &prob[0], IOU_THRESH);
+    RetinaFace::nms(res, &prob[0], IOU_THRESH);
     cv::Mat tmp = img.clone();
     std::vector<cv::Rect> rectangles;
     for (size_t j = 0; j < res.size(); j++) {
@@ -144,4 +144,26 @@ cv::Rect RetinaFace::getRectangles(cv::Mat& img, int input_w, int input_h, float
         }
     }
     return cv::Rect(l, t, r-l, b-t);
+}
+
+void RetinaFace::nms(std::vector<decodeplugin::Detection>& res, float *output, float nms_thresh = 0.4) {
+    std::vector<decodeplugin::Detection> dets;
+    for (int i = 0; i < output[0]; i++) {
+        if (output[15 * i + 1 + 4] <= 0.1) continue;
+        decodeplugin::Detection det;
+        memcpy(&det, &output[15 * i + 1], sizeof(decodeplugin::Detection));
+        dets.push_back(det);
+    }
+    std::sort(dets.begin(), dets.end(), cmp);
+    for (size_t m = 0; m < dets.size(); ++m) {
+        auto& item = dets[m];
+        res.push_back(item);
+        //std::cout << item.class_confidence << " bbox " << item.bbox[0] << ", " << item.bbox[1] << ", " << item.bbox[2] << ", " << item.bbox[3] << std::endl;
+        for (size_t n = m + 1; n < dets.size(); ++n) {
+            if (iou(item.bbox, dets[n].bbox) > nms_thresh) {
+                dets.erase(dets.begin()+n);
+                --n;
+            }
+        }
+    }
 }
