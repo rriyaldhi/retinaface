@@ -75,10 +75,8 @@ std::vector<cv::Rect> RetinaFace::infer(std::string imagePath) {
     }
 
     static float prob[RetinaFace::OUTPUT_SIZE];
-    std::cout << "inferencing" << std::endl;
     RetinaFace::doInference(this->context, data, prob, 1);
 
-    std::cout << "postprocessing" << std::endl;
     std::vector<decodeplugin::Detection> res;
     RetinaFace::nms(res, &prob[0], IOU_THRESH);
     cv::Mat tmp = img.clone();
