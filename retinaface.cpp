@@ -120,3 +120,43 @@ cv::Mat RetinaFace::preprocess(cv::Mat &img, int input_w, int input_h) {
     return out;
 }
 
+float RetinaFace::iou(float lbox[4], float rbox[4]) {
+    float interBox[] = {
+            std::max(lbox[0], rbox[0]), //left
+            std::min(lbox[2], rbox[2]), //right
+            std::max(lbox[1], rbox[1]), //top
+            std::min(lbox[3], rbox[3]), //bottom
+    };
+
+    if(interBox[2] > interBox[3] || interBox[0] > interBox[1])
+        return 0.0f;
+
+    float interBoxS = (interBox[1] - interBox[0]) * (interBox[3] - interBox[2]);
+    return interBoxS / ((lbox[2] - lbox[0]) * (lbox[3] - lbox[1]) + (rbox[2] - rbox[0]) * (rbox[3] - rbox[1]) -interBoxS + 0.000001f);
+}
+
+bool RetinaFace::cmp(const decodeplugin::Detection& a, const decodeplugin::Detection& b) {
+    return a.class_confidence > b.class_confidence;
+}
+
+void RetinaFace::nms(std::vector<decodeplugin::Detection>& res, float *output, float nms_thresh = 0.4) {
+    std::vector<decodeplugin::Detection> dets;
+    for (int i = 0; i < output[0]; i++) {
+        if (output[15 * i + 1 + 4] <= 0.1) continue;
+        decodeplugin::Detection det;
+        memcpy(&det, &output[15 * i + 1], sizeof(decodeplugin::Detection));
+        dets.push_back(det);
+    }
+    std::sort(dets.begin(), dets.end(), RetinaFace::cmp);
+    for (size_t m = 0; m < dets.size(); ++m) {
+        auto& item = dets[m];
+        res.push_back(item);
+        //std::cout << item.class_confidence << " bbox " << item.bbox[0] << ", " << item.bbox[1] << ", " << item.bbox[2] << ", " << item.bbox[3] << std::endl;
+        for (size_t n = m + 1; n < dets.size(); ++n) {
+            if (RetinaFace::iou(item.bbox, dets[n].bbox) > nms_thresh) {
+                dets.erase(dets.begin()+n);
+                --n;
+            }
+        }
+    }
+}
