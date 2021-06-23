@@ -50,3 +50,6 @@ sudo make install
 
 ## Usage
 Example usage can be found in [inference.cpp](https://github.com/rriyaldhi/retinaface/blob/main/inference.cpp).
+
+## Todo
+- Add code to generate retinaface.engine
