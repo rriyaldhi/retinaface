@@ -146,6 +146,21 @@ cv::Rect RetinaFace::getRectangles(cv::Mat& img, int input_w, int input_h, float
     return cv::Rect(l, t, r-l, b-t);
 }
 
+float RetinaFace::iou(float lbox[4], float rbox[4]) {
+    float interBox[] = {
+            std::max(lbox[0], rbox[0]), //left
+            std::min(lbox[2], rbox[2]), //right
+            std::max(lbox[1], rbox[1]), //top
+            std::min(lbox[3], rbox[3]), //bottom
+    };
+
+    if(interBox[2] > interBox[3] || interBox[0] > interBox[1])
+        return 0.0f;
+
+    float interBoxS = (interBox[1] - interBox[0]) * (interBox[3] - interBox[2]);
+    return interBoxS / ((lbox[2] - lbox[0]) * (lbox[3] - lbox[1]) + (rbox[2] - rbox[0]) * (rbox[3] - rbox[1]) -interBoxS + 0.000001f);
+}
+
 void RetinaFace::nms(std::vector<decodeplugin::Detection>& res, float *output, float nms_thresh = 0.4) {
     std::vector<decodeplugin::Detection> dets;
     for (int i = 0; i < output[0]; i++) {
@@ -160,7 +175,7 @@ void RetinaFace::nms(std::vector<decodeplugin::Detection>& res, float *output, f
         res.push_back(item);
 
         for (size_t n = m + 1; n < dets.size(); ++n) {
-            if (iou(item.bbox, dets[n].bbox) > nms_thresh) {
+            if (RetinaFace::iou(item.bbox, dets[n].bbox) > nms_thresh) {
                 dets.erase(dets.begin()+n);
                 --n;
             }
