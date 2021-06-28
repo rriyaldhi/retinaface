@@ -22,7 +22,7 @@ target_link_libraries(decodeplugin nvinfer cudart)
 find_package(OpenCV)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(inference ${PROJECT_SOURCE_DIR}/retinaface.cpp ${PROJECT_SOURCE_DIR}/inference.cpp)
+add_executable(inference ${PROJECT_SOURCE_DIR}/retinaface.cpp)
 target_link_libraries(inference nvinfer)
 target_link_libraries(inference cudart)
 target_link_libraries(inference decodeplugin)
