@@ -24,7 +24,7 @@ Download cuda 11.1 from: https://drive.google.com/uc?id=1fvoEa3BfAOvlDTsi9MByHtj
 sudo dpkg -i nv-tensorrt-repo-ubuntu1804-cuda11.1-trt7.2.3.4-ga-20210226_1-1_amd64.deb
 sudo apt-key add /var/nv-tensorrt-repo-ubuntu1804-cuda11.1-trt7.2.3.4-ga-20210226/7fa2af80.pub
 sudo apt-get update
-sudo apt-get install -y tensorrt python3-libnvinfer-dev
+sudo apt-get install -y tensorrt
 rm nv-tensorrt-repo-ubuntu1804-cuda11.1-trt7.2.3.4-ga-20210226_1-1_amd64.deb
 ```
 
