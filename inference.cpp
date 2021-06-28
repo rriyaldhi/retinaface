@@ -3,16 +3,19 @@
 #include "retinaface.h"
 
 int main(int argc, char** argv) {
+    RetinaFace retinaFace = RetinaFace();
+    cv::Mat imageRgb;
+    cv::Mat imageBgr = cv::imread("../images/1.360.jpeg");
+    cv::cvtColor(imageBgr, imageRgb, cv::COLOR_BGR2RGB);
 
-    if (argc != 2) {
-        std::cerr << "Argument is required!" << std::endl;
-        std::cerr << "./inference /path/to/image" << std::endl;
-        return -1;
+    std::vector<uint8_t> value;
+    if (imageRgb.isContinuous()) {
+        value.assign(imageRgb.data, imageRgb.data + imageRgb.total() * imageRgb.channels());
     }
 
-    RetinaFace retinaFace = RetinaFace();
-    std::vector<cv::Rect> rectangles = retinaFace.infer(std::string(argv[1]));
-
+    cv::Size s = imageRgb.size();
+    std::vector<cv::Rect> rectangles = retinaFace.infer(value, s.width, s.height);
+    std::cout << rectangles.size() << std::endl;
     for (cv::Rect rectangle: rectangles)
     {
         std::cout << rectangle.x << " " << rectangle.y << " " << rectangle.width << " " << rectangle.height << std::endl;
