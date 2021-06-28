@@ -48,5 +48,18 @@ make -j4
 sudo make install
 ```
 
-## Usage
+## Example Usage
 Example usage can be found in [inference.cpp](https://github.com/rriyaldhi/retinaface/blob/main/inference.cpp).
+
+## Build & Execute
+
+```
+mkdir build && cd build
+cmake ..
+make
+cp retinaface.engine .
+./inference ../images/1.360.jpg
+```
+
+## Todo
+- Add code to generate retinaface.engine
