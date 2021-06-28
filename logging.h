@@ -132,7 +132,7 @@ public:
     LogStreamConsumer(Severity reportableSeverity, Severity severity)
         : LogStreamConsumerBase(severityOstream(severity), severityPrefix(severity), severity <= reportableSeverity)
         , std::ostream(&mBuffer) // links the stream buffer with the stream
-        , mShouldLog(severity <= reportableSeverity)
+        , mShouldLog(false)
         , mSeverity(severity)
     {
     }
