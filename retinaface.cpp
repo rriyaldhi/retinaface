@@ -82,7 +82,7 @@ std::vector<cv::Rect> RetinaFace::infer(cv::Mat imageBgr) {
 
     std::vector<decodeplugin::Detection> res;
     RetinaFace::nms(res, &prob[0], IOU_THRESH);
-    cv::Mat tmp = imageRgb.clone();
+    cv::Mat tmp = imageBgr.clone();
     std::vector<cv::Rect> rectangles;
     for (size_t j = 0; j < res.size(); j++) {
         if (res[j].class_confidence < CONF_THRESH) continue;
