@@ -64,7 +64,7 @@ void RetinaFace:: doInference(IExecutionContext* context, float* input, float* o
 
 std::vector<cv::Rect> RetinaFace::infer(cv::Mat imageBgrParam, std::vector<uint8_t> value, uint32_t width, uint32_t height) {
     cv::Mat imageRgb, imageBgr;
-    imageBgr.create(width, height, CV_8UC3);
+    imageBgr.create(height, width, CV_8UC3);
     std::copy(value.begin(), value.end(), imageBgr.data);
     std::cout << imageBgr.rows << std::endl;
     std::cout << imageBgrParam.rows << std::endl;
