@@ -66,6 +66,8 @@ std::vector<cv::Rect> RetinaFace::infer(cv::Mat imageBgrParam, std::vector<uint8
     cv::Mat imageRgb, imageBgr;
     imageBgr.create(width, height, CV_8UC3);
     std::copy(value.begin(), value.end(), imageBgr.data);
+    std::cout << imageBgr.rows << std::endl;
+    std::cout << imageBgrParam.rows << std::endl;
     std::cout << imageBgr.cols << std::endl;
     std::cout << imageBgrParam.cols << std::endl;
 //    cv::cvtColor(imageRgb, imageBgr, cv::COLOR_RGB2BGR);
