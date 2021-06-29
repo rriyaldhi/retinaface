@@ -91,7 +91,7 @@ std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t wid
 //    }
 //
 //    return rectangles;
-    return null;
+    return nullptr;
 }
 
 RetinaFace::~RetinaFace() {
