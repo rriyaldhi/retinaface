@@ -62,12 +62,11 @@ void RetinaFace:: doInference(IExecutionContext* context, float* input, float* o
     CHECK(cudaFree(buffers[outputIndex]));
 }
 
-//std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t width, uint32_t height) {
-//    cv::Mat imageRgb, imageBgr;
-//    imageRgb.create(width, height, CV_8UC3);
-//    std::copy(value.begin(), value.end(), imageRgb.data);
+std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t width, uint32_t height) {
+    cv::Mat imageRgb, imageBgr;
+    imageBgr.create(width, height, CV_8UC3);
+    std::copy(value.begin(), value.end(), imageBgr.data);
 //    cv::cvtColor(imageRgb, imageBgr, cv::COLOR_RGB2BGR);
-std::vector<cv::Rect> RetinaFace::infer(cv::Mat imageBgr) {
     cv::Mat pr_img = RetinaFace::preprocess(imageBgr, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
     static float data[3 * RetinaFace::INPUT_H * RetinaFace::INPUT_W];
     float *p_data = &data[0];
@@ -88,8 +87,7 @@ std::vector<cv::Rect> RetinaFace::infer(cv::Mat imageBgr) {
         if (res[j].class_confidence < CONF_THRESH) continue;
         cv::Rect rectangle = RetinaFace::getRectangles(tmp, RetinaFace::INPUT_W, RetinaFace::INPUT_H, res[j].bbox, res[j].landmark);
         rectangles.push_back(rectangle);
-        cv::rectangle(tmp, rectangle, cv::Scalar(0x27, 0xC1, 0x36), 2);
-        //cv::putText(tmp, std::to_string((int)(res[j].class_confidence * 100)) + "%", cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN, 1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 1);
+        cv::rectangle(tmp, rectangle, cv::Scalar(0x27, 0xC1, 0x36), 2);]
         for (int k = 0; k < 10; k += 2) {
             cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
         }
