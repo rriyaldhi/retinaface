@@ -62,7 +62,7 @@ void RetinaFace:: doInference(IExecutionContext* context, float* input, float* o
     CHECK(cudaFree(buffers[outputIndex]));
 }
 
-std::vector<cv::Rect> RetinaFace::infer(cv::Mat imageBgrParam, std::vector<uint8_t> value, uint32_t width, uint32_t height) {
+std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t width, uint32_t height) {
     cv::Mat imageRgb, imageBgr;
     imageRgb.create(height, width, CV_8UC3);
     std::copy(value.begin(), value.end(), imageRgb.data);
