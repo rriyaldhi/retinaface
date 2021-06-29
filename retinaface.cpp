@@ -62,12 +62,12 @@ void RetinaFace:: doInference(IExecutionContext* context, float* input, float* o
     CHECK(cudaFree(buffers[outputIndex]));
 }
 
-std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t width, uint32_t height) {
-    cv::Mat imageRgb, imageBgr;
-    imageRgb.create(width, height, CV_8UC3);
-    std::copy(value.begin(), value.end(), imageRgb.data);
-    cv::cvtColor(imageRgb, imageBgr, cv::COLOR_RGB2BGR);
-
+//std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t width, uint32_t height) {
+//    cv::Mat imageRgb, imageBgr;
+//    imageRgb.create(width, height, CV_8UC3);
+//    std::copy(value.begin(), value.end(), imageRgb.data);
+//    cv::cvtColor(imageRgb, imageBgr, cv::COLOR_RGB2BGR);
+std::vector<cv::Rect> RetinaFace::infer(cv::Mat imageBgr) {
     cv::Mat pr_img = RetinaFace::preprocess(imageBgr, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
     static float data[3 * RetinaFace::INPUT_H * RetinaFace::INPUT_W];
     float *p_data = &data[0];
