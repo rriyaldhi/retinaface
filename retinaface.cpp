@@ -68,21 +68,21 @@ std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t wid
     std::copy(value.begin(), value.end(), imageRgb.data);
     cv::cvtColor(imageRgb, imageBgr, cv::COLOR_RGB2BGR);
 
-//    cv::Mat pr_img = RetinaFace::preprocess(imageBgr, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
-//    static float data[3 * RetinaFace::INPUT_H * RetinaFace::INPUT_W];
-//    float *p_data = &data[0];
-//    for (int i = 0; i < RetinaFace::INPUT_H * RetinaFace::INPUT_W; i++) {
-//        p_data[i] = pr_img.at<cv::Vec3b>(i)[0];
-//        p_data[i + RetinaFace::INPUT_H * RetinaFace::INPUT_W] = pr_img.at<cv::Vec3b>(i)[1];
-//        p_data[i + 2 * RetinaFace::INPUT_H * RetinaFace::INPUT_W] = pr_img.at<cv::Vec3b>(i)[2];
-//    }
-//
-//    static float prob[RetinaFace::OUTPUT_SIZE];
-//    RetinaFace::doInference(this->context, data, prob, 1);
-//
-//    std::vector<decodeplugin::Detection> res;
-//    RetinaFace::nms(res, &prob[0], IOU_THRESH);
-//    cv::Mat tmp = imageRgb.clone();
+    cv::Mat pr_img = RetinaFace::preprocess(imageBgr, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
+    static float data[3 * RetinaFace::INPUT_H * RetinaFace::INPUT_W];
+    float *p_data = &data[0];
+    for (int i = 0; i < RetinaFace::INPUT_H * RetinaFace::INPUT_W; i++) {
+        p_data[i] = pr_img.at<cv::Vec3b>(i)[0];
+        p_data[i + RetinaFace::INPUT_H * RetinaFace::INPUT_W] = pr_img.at<cv::Vec3b>(i)[1];
+        p_data[i + 2 * RetinaFace::INPUT_H * RetinaFace::INPUT_W] = pr_img.at<cv::Vec3b>(i)[2];
+    }
+
+    static float prob[RetinaFace::OUTPUT_SIZE];
+    RetinaFace::doInference(this->context, data, prob, 1);
+
+    std::vector<decodeplugin::Detection> res;
+    RetinaFace::nms(res, &prob[0], IOU_THRESH);
+    cv::Mat tmp = imageRgb.clone();
     std::vector<cv::Rect> rectangles;
 //    for (size_t j = 0; j < res.size(); j++) {
 //        if (res[j].class_confidence < CONF_THRESH) continue;
