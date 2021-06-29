@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
     }
 
     RetinaFace retinaFace = RetinaFace();
-    cv::Mat imageRgb, imageBgr;
+    cv::Mat imageRgb;
     cv::Mat imageBgr = cv::imread(std::string(argv[1]));
     std::vector<uint8_t> value;
     if (imageBgr.isContinuous()) {
