@@ -13,7 +13,8 @@ int main(int argc, char** argv) {
         value.assign(imageBgr.data, imageBgr.data + imageBgr.total() * imageBgr.channels());
     }
 
-    std::vector<cv::Rect> rectangles = retinaFace.infer(value, 360, 246);
+    cv::Size s = imageBgr.size();
+    std::vector<cv::Rect> rectangles = retinaFace.infer(value, s.width, s.height);
     std::cout << rectangles.size() << std::endl;
     for (cv::Rect rectangle: rectangles)
     {
