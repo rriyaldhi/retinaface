@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     }
 
     cv::Size s = imageBgr.size();
-    std::vector<cv::Rect> rectangles = retinaFace.infer(value, s.width, s.height);
+    std::vector<cv::Rect> rectangles = retinaFace.infer(imageBgr, value, s.width, s.height);
     std::cout << rectangles.size() << std::endl;
     for (cv::Rect rectangle: rectangles)
     {
