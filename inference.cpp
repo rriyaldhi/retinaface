@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 
     RetinaFace retinaFace = RetinaFace();
     cv::Mat imageRgb;
-    cv::Mat imageBgr = cv::imread(std::string(argv[1]));
+    cv::Mat imageBgr = cv::imread("../images/1.360.jpeg");
     std::vector<uint8_t> value;
     if (imageBgr.isContinuous()) {
         value.assign(imageBgr.data, imageBgr.data + imageBgr.total() * imageBgr.channels());
