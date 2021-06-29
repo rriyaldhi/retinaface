@@ -84,12 +84,12 @@ std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t wid
     RetinaFace::nms(res, &prob[0], IOU_THRESH);
     cv::Mat tmp = imageRgb.clone();
     std::vector<cv::Rect> rectangles;
-//    for (size_t j = 0; j < res.size(); j++) {
-//        if (res[j].class_confidence < CONF_THRESH) continue;
-//        cv::Rect rectangle = RetinaFace::getRectangles(tmp, RetinaFace::INPUT_W, RetinaFace::INPUT_H, res[j].bbox, res[j].landmark);
-//        rectangles.push_back(rectangle);
-//    }
-//
+    for (size_t j = 0; j < res.size(); j++) {
+        if (res[j].class_confidence < CONF_THRESH) continue;
+        cv::Rect rectangle = RetinaFace::getRectangles(tmp, RetinaFace::INPUT_W, RetinaFace::INPUT_H, res[j].bbox, res[j].landmark);
+        rectangles.push_back(rectangle);
+    }
+
     return rectangles;
 }
 
