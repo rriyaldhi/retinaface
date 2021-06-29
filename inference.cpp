@@ -15,10 +15,10 @@ int main(int argc, char** argv) {
 
     std::vector<cv::Rect> rectangles = retinaFace.infer(value, 360, 246);
 
-//    for (cv::Rect rectangle: rectangles)
-//    {
-//        std::cout << rectangle.x << " " << rectangle.y << " " << rectangle.width << " " << rectangle.height << std::endl;
-//    }
+    for (cv::Rect rectangle: rectangles)
+    {
+        std::cout << rectangle.x << " " << rectangle.y << " " << rectangle.width << " " << rectangle.height << std::endl;
+    }
 
     return 0;
 }
