@@ -6,7 +6,7 @@ int main(int argc, char** argv) {
     RetinaFace retinaFace = RetinaFace();
     cv::Mat imageRgb;
     cv::Mat imageBgr = cv::imread("../images/1.360.jpeg");
-//    cv::cvtColor(imageBgr, imageRgb, cv::COLOR_BGR2RGB);
+    cv::cvtColor(imageBgr, imageRgb, cv::COLOR_BGR2RGB);
 
     std::vector<uint8_t> value;
     if (imageBgr.isContinuous()) {
