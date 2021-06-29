@@ -62,10 +62,13 @@ void RetinaFace:: doInference(IExecutionContext* context, float* input, float* o
     CHECK(cudaFree(buffers[outputIndex]));
 }
 
-std::vector<cv::Rect> RetinaFace::infer(std::string imagePath) {
-    cv::Mat img = cv::imread(imagePath);
+std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t width, uint32_t height) {
+    cv::Mat imageRgb, imageBgr;
+    imageRgb.create(width, height, CV_8UC3);
+    std::copy(value.begin(), value.end(), imageRgb.data);
+    cv::cvtColor(imageRgb, imageBgr, cv::COLOR_RGB2BGR);
 
-    cv::Mat pr_img = RetinaFace::preprocess(img, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
+    cv::Mat pr_img = RetinaFace::preprocess(imageBgr, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
     static float data[3 * RetinaFace::INPUT_H * RetinaFace::INPUT_W];
     float *p_data = &data[0];
     for (int i = 0; i < RetinaFace::INPUT_H * RetinaFace::INPUT_W; i++) {
@@ -79,7 +82,7 @@ std::vector<cv::Rect> RetinaFace::infer(std::string imagePath) {
 
     std::vector<decodeplugin::Detection> res;
     RetinaFace::nms(res, &prob[0], IOU_THRESH);
-    cv::Mat tmp = img.clone();
+    cv::Mat tmp = imageRgb.clone();
     std::vector<cv::Rect> rectangles;
     for (size_t j = 0; j < res.size(); j++) {
         if (res[j].class_confidence < CONF_THRESH) continue;

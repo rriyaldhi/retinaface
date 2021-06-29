@@ -11,7 +11,14 @@ int main(int argc, char** argv) {
     }
 
     RetinaFace retinaFace = RetinaFace();
-    std::vector<cv::Rect> rectangles = retinaFace.infer(std::string(argv[1]));
+    cv::Mat imageRgb, imageBgr;
+    cv::Mat imageBgr = cv::imread(std::string(argv[1]));
+    std::vector<uint8_t> value;
+    if (imageBgr.isContinuous()) {
+        value.assign(imageBgr.data, imageBgr.data + imageBgr.total() * imageBgr.channels());
+    }
+    cv::cvtColor(imageBgr, imageRgb, cv::COLOR_BGR2RGB);
+    std::vector<cv::Rect> rectangles = retinaFace.infer(imageRgb, 360, 246);
 
     for (cv::Rect rectangle: rectangles)
     {
