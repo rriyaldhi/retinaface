@@ -52,7 +52,7 @@ private:
     static inline void nms(std::vector<decodeplugin::Detection>& res, float *output, float nms_thresh);
 public:
     RetinaFace();
-    std::vector<cv::Rect> infer(cv::Mat imageBgr);
+    std::vector<cv::Rect> infer(std::vector<uint8_t> value, uint32_t width, uint32_t height);
     ~RetinaFace();
 };
 
