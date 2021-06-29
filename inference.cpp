@@ -9,11 +9,11 @@ int main(int argc, char** argv) {
     cv::cvtColor(imageBgr, imageRgb, cv::COLOR_BGR2RGB);
 
     std::vector<uint8_t> value;
-    if (imageBgr.isContinuous()) {
-        value.assign(imageBgr.data, imageBgr.data + imageBgr.total() * imageBgr.channels());
+    if (imageRgb.isContinuous()) {
+        value.assign(imageRgb.data, imageRgb.data + imageRgb.total() * imageRgb.channels());
     }
 
-    cv::Size s = imageBgr.size();
+    cv::Size s = imageRgb.size();
     std::vector<cv::Rect> rectangles = retinaFace.infer(imageBgr, value, s.width, s.height);
     std::cout << rectangles.size() << std::endl;
     for (cv::Rect rectangle: rectangles)
