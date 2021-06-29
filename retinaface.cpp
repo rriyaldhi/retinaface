@@ -71,7 +71,7 @@ std::vector<cv::Rect> RetinaFace::infer(cv::Mat imageBgrParam, std::vector<uint8
     std::cout << imageBgr.cols << std::endl;
     std::cout << imageBgrParam.cols << std::endl;
 //    cv::cvtColor(imageRgb, imageBgr, cv::COLOR_RGB2BGR);
-    cv::Mat pr_img = RetinaFace::preprocess(imageBgrParam, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
+    cv::Mat pr_img = RetinaFace::preprocess(imageBgr, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
     static float data[3 * RetinaFace::INPUT_H * RetinaFace::INPUT_W];
     float *p_data = &data[0];
     for (int i = 0; i < RetinaFace::INPUT_H * RetinaFace::INPUT_W; i++) {
@@ -85,7 +85,7 @@ std::vector<cv::Rect> RetinaFace::infer(cv::Mat imageBgrParam, std::vector<uint8
 
     std::vector<decodeplugin::Detection> res;
     RetinaFace::nms(res, &prob[0], IOU_THRESH);
-    cv::Mat tmp = imageBgrParam.clone();
+    cv::Mat tmp = imageBgr.clone();
     std::vector<cv::Rect> rectangles;
     for (size_t j = 0; j < res.size(); j++) {
         if (res[j].class_confidence < CONF_THRESH) continue;
