@@ -60,6 +60,3 @@ make
 cp retinaface.engine .
 ./inference
 ```
-
-## Todo
-- Add code to generate retinaface.engine
