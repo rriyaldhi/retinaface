@@ -53,10 +53,12 @@ Example usage can be found in [inference.cpp](https://github.com/rriyaldhi/retin
 
 ## Build & Execute
 
+Follow this [guide](https://github.com/rriyaldhi/retinaface/blob/main/engine/README.md) to generate retinaface.engine
+
 ```
 mkdir build && cd build
 cmake ..
 make
-cp retinaface.engine .
+cp <ROOT_REPOSITORY>/engine/build/retinaface.engine .
 ./inference
 ```
