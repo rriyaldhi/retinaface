@@ -59,6 +59,6 @@ Follow this [guide](https://github.com/rriyaldhi/retinaface/blob/main/engine/REA
 mkdir build && cd build
 cmake ..
 make
-cp <ROOT_REPOSITORY>/engine/build/retinaface.engine .
+cp <REPOSITORY_ROOT>/engine/build/retinaface.engine .
 ./inference
 ```
