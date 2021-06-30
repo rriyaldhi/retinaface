@@ -10,6 +10,9 @@ $ make -j4
 ```
 
 3. Download images for calibration and put in <REPOSITORY_ROOT>/engine/build directory: https://drive.google.com/uc?id=1YardM13gsB7XeSirXEb3ApbXhbSLJmIB
+```
+unzip widerface_calib.zip
+```
 
 4. Generate the engine
 ```
