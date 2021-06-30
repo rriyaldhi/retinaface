@@ -259,13 +259,6 @@ void APIToModel(unsigned int maxBatchSize, IHostMemory** modelStream) {
 }
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cerr << "arguments not right!" << std::endl;
-        std::cerr << "./retina_r50 -s   // serialize model to plan file" << std::endl;
-        std::cerr << "./retina_r50 -d   // deserialize plan file and run inference" << std::endl;
-        return -1;
-    }
-
     cudaSetDevice(DEVICE);
 
     IHostMemory* modelStream{nullptr};
