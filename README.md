@@ -58,7 +58,7 @@ mkdir build && cd build
 cmake ..
 make
 cp retinaface.engine .
-./inference ../images/1.360.jpg
+./inference
 ```
 
 ## Todo
