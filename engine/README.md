@@ -1,6 +1,6 @@
 # RetinaFace - Generate Engine
 
-1. Download retinaface.wts and put in <REPOSITORY_ROOT>/engine directory: 
+1. Download retinaface.wts and put in <REPOSITORY_ROOT>/engine directory: https://drive.google.com/uc?id=17VxDFbPL2kc-ChUG6KzKBNUVzTA0avWF
 
 2. Build the engine generator source
 ```
