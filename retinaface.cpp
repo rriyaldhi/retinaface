@@ -87,12 +87,7 @@ std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t wid
         if (res[j].class_confidence < CONF_THRESH) continue;
         cv::Rect rectangle = RetinaFace::getRectangles(tmp, RetinaFace::INPUT_W, RetinaFace::INPUT_H, res[j].bbox, res[j].landmark);
         rectangles.push_back(rectangle);
-        cv::rectangle(tmp, rectangle, cv::Scalar(0x27, 0xC1, 0x36), 2);
-        for (int k = 0; k < 10; k += 2) {
-            cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
-        }
     }
-    cv::imwrite("result.jpg", tmp);
 
     return rectangles;
 }
