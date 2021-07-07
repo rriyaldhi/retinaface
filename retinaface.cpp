@@ -71,9 +71,9 @@ std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t wid
     static float data[3 * RetinaFace::INPUT_H * RetinaFace::INPUT_W];
     float *p_data = &data[0];
     for (int i = 0; i < RetinaFace::INPUT_H * RetinaFace::INPUT_W; i++) {
-        p_data[i] = pr_img.at<cv::Vec3b>(i)[0];
-        p_data[i + RetinaFace::INPUT_H * RetinaFace::INPUT_W] = pr_img.at<cv::Vec3b>(i)[1];
-        p_data[i + 2 * RetinaFace::INPUT_H * RetinaFace::INPUT_W] = pr_img.at<cv::Vec3b>(i)[2];
+        p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
+        p_data[i + RetinaFace::INPUT_H * RetinaFace::INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
+        p_data[i + 2 * RetinaFace::INPUT_H * RetinaFace::INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
     }
 
     static float prob[RetinaFace::OUTPUT_SIZE];
