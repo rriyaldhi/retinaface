@@ -5,7 +5,7 @@
 int main(int argc, char** argv) {
     RetinaFace retinaFace = RetinaFace();
     cv::Mat imageRgb;
-    cv::Mat imageBgr = cv::imread("../images/1.360.jpeg");
+    cv::Mat imageBgr = cv::imread(std::string(argv[1]));
     cv::cvtColor(imageBgr, imageRgb, cv::COLOR_BGR2RGB);
 
     std::vector<uint8_t> value;
