@@ -15,11 +15,7 @@ int main(int argc, char** argv) {
 
     cv::Size s = imageRgb.size();
     std::vector<cv::Rect> rectangles = retinaFace.infer(value, s.width, s.height);
-    std::cout << rectangles.size() << std::endl;
-    for (cv::Rect rectangle: rectangles)
-    {
-        std::cout << rectangle.x << " " << rectangle.y << " " << rectangle.width << " " << rectangle.height << std::endl;
-    }
+    std::cout << "Detected faces: " << rectangles.size() << std::endl;
 
     return 0;
 }
