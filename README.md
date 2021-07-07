@@ -44,7 +44,7 @@ mv opencv-4.3.0 opencv
 cd opencv
 mkdir build && cd build
 cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local ..
-make -j4
+make
 sudo make install
 ```
 
@@ -60,5 +60,5 @@ mkdir build && cd build
 cmake ..
 make
 cp <REPOSITORY_ROOT>/engine/build/retinaface.engine .
-./inference
+./inference ../images/1.360.jpeg
 ```
