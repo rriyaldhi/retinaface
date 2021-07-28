@@ -9,7 +9,7 @@
 #include "common.hpp"
 #include "calibrator.h"
 
-#define USE_INT8
+#define USE_FP16
 #define DEVICE 0
 #define BATCH_SIZE 1
 #define CONF_THRESH 0.75
