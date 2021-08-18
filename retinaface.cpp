@@ -111,7 +111,7 @@ void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
         std::cout << "ERROR: Failed to write the video" << std::endl;
     }
     while (true) {
-        std::cout << "Reading frame: " << i << std::endl;
+        std::cout << "Reading..."<< std::endl;
         cv::Mat imageRgb;
         bool readSuccess = videoCapture.read(imageRgb);
         if (!readSuccess) {
