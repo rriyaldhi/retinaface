@@ -111,10 +111,14 @@ void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
         std::cout << "ERROR: Failed to write the video" << std::endl;
     }
     if (videoCapture.isOpened()) {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
                 std::cout << "Reading frame: " << i << std::endl;
                 cv::Mat imageRgb;
-                videoCapture >> imageRgb;
+                bool readSuccess = videoCapture.read(imageRgb);
+                if (!readSuccess) {
+                    std::cout << "ERROR: Failed to read the frame" << std::endl;
+                    continue;
+                }
                 cv::Mat imageBgr;
                 cv::cvtColor(imageRgb, imageBgr, cv::COLOR_RGB2BGR);
                 cv::Mat pr_img = RetinaFace::preprocess(imageBgr, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
@@ -145,14 +149,6 @@ void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
                 cv::imwrite("result_" + std::to_string(i) + ".jpg", imageRgb);
         }
     }
-//        cv::Mat imageRgb;
-//        std::cout << "Reading..." << std::endl;
-//        videoCapture >> imageRgb;
-//        bool readSuccess = videoCapture.read(imageRgb);
-//        if (!readSuccess) {
-//            std::cout << "ERROR: Failed to read the frame" << std::endl;
-//            continue;
-//        }
 //        std::cout << "Writing..." << std::endl;
 //        videoWriter.write(tmp);
 //        std::cout << "Writing..." << std::endl;
