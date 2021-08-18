@@ -112,6 +112,7 @@ void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
     }
     if (videoCapture.isOpened()) {
         std::cout << "Reading..." << std::endl;
+        cv::Mat imageRgb;
         videoCapture >> imageRgb;
         cv::imwrite("result.jpg", imageRgb);
     }
