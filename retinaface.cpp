@@ -146,13 +146,10 @@ void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
                     }
                 }
                 cv::cvtColor(tmp, imageRgb, cv::COLOR_BGR2RGB);
-                cv::imwrite("result_" + std::to_string(i) + ".jpg", imageRgb);
+                std::cout << "Writing..." << std::endl;
+                videoWriter.write(imageRgb);
         }
     }
-//        std::cout << "Writing..." << std::endl;
-//        videoWriter.write(tmp);
-//        std::cout << "Writing..." << std::endl;
-//        videoWriter << imageRgb;
 }
 
 RetinaFace::~RetinaFace() {
