@@ -109,6 +109,7 @@ void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
     }
     while (videoCapture.isOpened()) {
         cv::Mat imageRgb;
+        std::cout << "Reading..." << std::endl;
         videoCapture >> imageRgb;
 //        bool readSuccess = videoCapture.read(imageRgb);
 //        if (!readSuccess) {
@@ -143,6 +144,7 @@ void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
 //        }
 //        std::cout << "Writing..." << std::endl;
 //        videoWriter.write(tmp);
+        std::cout << "Writing..." << std::endl;
         videoWriter << imageRgb;
     }
 }
