@@ -28,5 +28,11 @@ target_link_libraries(inference cudart)
 target_link_libraries(inference decodeplugin)
 target_link_libraries(inference ${OpenCV_LIBRARIES})
 
+add_executable(inference_video ${PROJECT_SOURCE_DIR}/retinaface.cpp ${PROJECT_SOURCE_DIR}/inference_video.cpp)
+target_link_libraries(inference_video nvinfer)
+target_link_libraries(inference_video cudart)
+target_link_libraries(inference_video decodeplugin)
+target_link_libraries(inference_video ${OpenCV_LIBRARIES})
+
 add_definitions(-O2 -pthread)
 
