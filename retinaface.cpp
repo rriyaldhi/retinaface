@@ -102,15 +102,18 @@ void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
     int width = static_cast<int>(videoCapture.get(cv::CAP_PROP_FRAME_WIDTH));
     int height = static_cast<int>(videoCapture.get(cv::CAP_PROP_FRAME_HEIGHT));
     double FPS = videoCapture.get(cv::CAP_PROP_FPS);
+    std::cout << width << std::endl;
+    std::cout << height << std::endl;
+    std::cout << FPS << std::endl;
     cv::VideoWriter videoWriter(output_video, cv::VideoWriter::fourcc('m','p', '4', 'v'), FPS, cv::Size(width, height));
     if (!videoWriter.isOpened())
     {
         std::cout << "ERROR: Failed to write the video" << std::endl;
     }
-    while (videoCapture.isOpened()) {
-        cv::Mat imageRgb;
-        std::cout << "Reading..." << std::endl;
-        videoCapture >> imageRgb;
+//    while (videoCapture.isOpened()) {
+//        cv::Mat imageRgb;
+//        std::cout << "Reading..." << std::endl;
+//        videoCapture >> imageRgb;
 //        bool readSuccess = videoCapture.read(imageRgb);
 //        if (!readSuccess) {
 //            std::cout << "ERROR: Failed to read the frame" << std::endl;
@@ -144,9 +147,9 @@ void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
 //        }
 //        std::cout << "Writing..." << std::endl;
 //        videoWriter.write(tmp);
-        std::cout << "Writing..." << std::endl;
-        videoWriter << imageRgb;
-    }
+//        std::cout << "Writing..." << std::endl;
+//        videoWriter << imageRgb;
+//    }
 }
 
 RetinaFace::~RetinaFace() {
