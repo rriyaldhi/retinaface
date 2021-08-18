@@ -142,7 +142,7 @@ void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
                     }
                 }
                 cv::cvtColor(tmp, imageRgb, cv::COLOR_BGR2RGB);
-                cv::imwrite("result_" + i + ".jpg", imageRgb);
+                cv::imwrite("result_" + ((std::string) i) + ".jpg", imageRgb);
         }
     }
 //        cv::Mat imageRgb;
