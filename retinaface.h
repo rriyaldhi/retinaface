@@ -53,6 +53,7 @@ private:
 public:
     RetinaFace();
     std::vector<cv::Rect> infer(std::vector<uint8_t> value, uint32_t width, uint32_t height);
+    void inferVideo(std::string input_video, std::string output_video);
     ~RetinaFace();
 };
 

@@ -97,6 +97,54 @@ std::vector<cv::Rect> RetinaFace::infer(std::vector<uint8_t> value, uint32_t wid
     return rectangles;
 }
 
+void RetinaFace::inferVideo(std::string input_video, std::string output_video) {
+    cv::VideoCapture videoCapture(input_video);
+    int width = static_cast<int>(videoCapture.get(cv::CAP_PROP_FRAME_WIDTH));
+    int height = static_cast<int>(videoCapture.get(cv::CAP_PROP_FRAME_HEIGHT));
+    double FPS = videoCapture.get(cv::CAP_PROP_FPS);
+    cv::VideoWriter videoWriter(output_video, cv::VideoWriter::fourcc('m','p', '4', 'v'), FPS, cv::Size(width, height));
+    if (!videoWriter.isOpened())
+    {
+        std::cout << "ERROR: Failed to write the video" << std::endl;
+    }
+    while (videoCapture.isOpened()) {
+        cv::Mat imageRgb;
+        bool readSuccess = videoCapture.read(imageRgb);
+        if (!readSuccess) {
+            std::cout << "ERROR: Failed to read the frame" << std::endl;
+            continue;
+        }
+        cv::Mat imageBgr;
+        cv::cvtColor(imageRgb, imageBgr, cv::COLOR_RGB2BGR);
+        cv::Mat pr_img = RetinaFace::preprocess(imageBgr, RetinaFace::INPUT_W, RetinaFace::INPUT_H);
+        static float data[3 * RetinaFace::INPUT_H * RetinaFace::INPUT_W];
+        float *p_data = &data[0];
+        for (int i = 0; i < RetinaFace::INPUT_H * RetinaFace::INPUT_W; i++) {
+            p_data[i] = pr_img.at<cv::Vec3b>(i)[0] - 104.0;
+            p_data[i + RetinaFace::INPUT_H * RetinaFace::INPUT_W] = pr_img.at<cv::Vec3b>(i)[1] - 117.0;
+            p_data[i + 2 * RetinaFace::INPUT_H * RetinaFace::INPUT_W] = pr_img.at<cv::Vec3b>(i)[2] - 123.0;
+        }
+        static float prob[RetinaFace::OUTPUT_SIZE];
+        RetinaFace::doInference(this->context, data, prob, 1);
+
+        std::vector<decodeplugin::Detection> res;
+        RetinaFace::nms(res, &prob[0], IOU_THRESH);
+        cv::Mat tmp = imageBgr.clone();
+        std::vector<cv::Rect> rectangles;
+        for (size_t j = 0; j < res.size(); j++) {
+            if (res[j].class_confidence < CONF_THRESH) continue;
+            cv::Rect rectangle = RetinaFace::getRectangles(tmp, RetinaFace::INPUT_W, RetinaFace::INPUT_H, res[j].bbox, res[j].landmark);
+            rectangles.push_back(rectangle);
+            cv::rectangle(tmp, rectangle, cv::Scalar(0x27, 0xC1, 0x36), 2);
+            for (int k = 0; k < 10; k += 2) {
+                cv::circle(tmp, cv::Point(res[j].landmark[k], res[j].landmark[k + 1]), 1, cv::Scalar(255 * (k > 2), 255 * (k > 0 && k < 8), 255 * (k < 6)), 4);
+            }
+        }
+        videoWriter.write(tmp);
+
+    }
+}
+
 RetinaFace::~RetinaFace() {
     this->context->destroy();
     this->engine->destroy();
